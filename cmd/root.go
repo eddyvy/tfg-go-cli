@@ -1,28 +1,23 @@
-/*
-Copyright © 2024 Eduard Valls <edwardyue93@gmail.com>
-*/
 package cmd
 
 import (
+	"fmt"
 	"os"
 
+	helloworld "github.com/eddyvy/tfg-go-cli/hello-world"
 	"github.com/spf13/cobra"
 )
 
-// rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "hellogo",
+	Use:   "hellogo [project name]",
 	Short: "Application for creating a hello world",
 	Long: `This applications is a tool created as a final degree project
 with the aim of creating a new project with the use of a CLI.
 This application, at this moment, only creates a hello world project.`,
-	// Uncomment the following line if your bare application
-	// has an action associated with it:
-	// Run: func(cmd *cobra.Command, args []string) { },
+	Run:  run,
+	Args: cobra.MatchAll(cobra.ExactArgs(1), cobra.OnlyValidArgs),
 }
 
-// Execute adds all child commands to the root command and sets flags appropriately.
-// This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
 	err := rootCmd.Execute()
 	if err != nil {
@@ -39,5 +34,16 @@ func init() {
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
-	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	// rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+}
+
+func run(cmd *cobra.Command, args []string) {
+	arg := args[0]
+	err := helloworld.CreateHelloWorld(arg)
+
+	if err != nil {
+		fmt.Println("Error creating project:", err)
+	} else {
+		fmt.Println("Hello world app created successfully!")
+	}
 }
