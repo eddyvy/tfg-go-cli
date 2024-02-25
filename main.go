@@ -1,7 +1,10 @@
+/*
+Copyright © 2024 Eduard Valls <edwardyue93@gmail.com>
+*/
 package main
 
-import "fmt"
+import "github.com/eddyvy/tfg-go-cli/cmd"
 
 func main() {
-	fmt.Println("Hello, World!")
+	cmd.Execute()
 }
