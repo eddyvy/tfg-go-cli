@@ -1,0 +1,40 @@
+@startuml update_project
+
+title Nuevo proyecto
+
+actor usuario as user
+boundary terminal as term
+database db as db
+entity os as os
+
+user -> term : cmd
+term -> os : consulta archivos directorio actual
+os -> term : datos archivos
+
+alt proyecto identificado
+  term -> user : nombre tabla ?
+  term -> user : nombre tabla
+  term -> user : params conexion ?
+  user -> term : params conexion
+  term -> db : intena conectar
+
+  alt conecta
+    db -> term : conectado
+    term -> user : conectado correctamente
+    term -> db : consulta tabla
+    db -> term : datos tabla
+    term -> user : mostrar datos, confirmar?
+    user -> term : yes
+    term -> os : actualiza proyecto
+    os -> term : proyecto actualizado
+    term -> user : proyecto actualizado
+  else no conecta
+    db -> term : error conexion
+    term -> user : error conexion, exit
+  end
+
+else proyecto no identificado
+  term -> user : proyecto no identificado, exit
+end
+
+@enduml

@@ -1,0 +1,14 @@
+@startuml use_cases
+
+:usuario: as user
+(Nuevo proyecto con un CRUD) as new_1
+(Nuevo proyecto con varios CRUD) as new_2
+(Crea un CRUD de proyecto existente) as update_1
+(Interrumpe programa en ejecution) as interrupt_1
+
+user -up-> new_1
+user -right-> new_2
+user -down-> update_1
+user -left-> interrupt_1
+
+@enduml

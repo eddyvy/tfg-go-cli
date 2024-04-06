@@ -1,0 +1,42 @@
+@startuml new_project
+
+title Nuevo proyecto
+
+actor usuario as user
+boundary terminal as term
+database db as db
+entity os as os
+
+user -> term : cmd + nombre_proyecto
+term -> user : tipo base datos ?
+user -> term : tipo base datos
+term -> user : params conexion ?
+user -> term : params conexion
+term -> user : todas las tablas yes/no?
+
+alt yes
+  user -> term : yes
+else no
+  user -> term : no
+  term -> user : nombre tabla ?
+  term -> user : nombre tabla
+end
+
+term -> db : intena conectar
+
+alt conecta
+  db -> term : conectado
+  term -> user : conectado correctamente
+  term -> db : consulta tabla/s
+  db -> term : datos tabla/s
+  term -> user : mostrar datos, confirmar?
+  user -> term : yes
+  term -> os : crear proyecto
+  os -> term : proyecto creado
+  term -> user : proyecto creado
+else no conecta
+  db -> term : error conexion
+  term -> user : error conexion, exit
+end
+
+@enduml
