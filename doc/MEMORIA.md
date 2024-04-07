@@ -10,6 +10,15 @@ Existen muchos CLIs creados con Go, algunos [ejemplos](https://go.dev/solutions/
 
 El CLI de este proyecto creará un proyecto nuevo hecho en Go. Este nuevo proyecto creado a raíz del CLI será una API REST que creará los endpoints CRUD a partir de las tablas de una base de datos.
 
+## Proyectos similares existentes
+
+No se ha encontrado algo exactamente igual pero sí servicios que ofrecen programas para manejar APIs a partir de una interfaz gráfica y conectar con una base de datos:
+
+- https://www.cdata.com/apiserver/
+- https://strapi.io
+- https://www.gravitee.io
+- https://guide.dreamfactory.com/docs/
+
 ## Alcance
 
 Sí está en el alcance de este proyecto:
@@ -56,3 +65,13 @@ Se definirá como CRUD a la cración de 5 endpoints uno para leer todos los recu
 1. Se utiliza el lenguaje Golang
 
 2. El programa se maneja por línea de comandos (CLI)
+
+## Herramientas utilizadas
+
+- [Cobra](https://cobra.dev)
+- [Fiber](https://gofiber.io)
+- [Github Copilot](https://github.com/features/copilot)
+
+## Proyecto a crear
+
+- Se crea una API Rest con dependencias como el framework Go Fiber
