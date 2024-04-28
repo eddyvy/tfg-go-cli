@@ -71,6 +71,7 @@ Se definirá como CRUD a la cración de 5 endpoints uno para leer todos los recu
 - [Cobra](https://cobra.dev)
 - [Fiber](https://gofiber.io)
 - [Github Copilot](https://github.com/features/copilot)
+- [Viper](https://github.com/spf13/viper)
 
 ## Proyecto a crear
 

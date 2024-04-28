@@ -1,4 +1,7 @@
 version: 0.0.1
+project:
+  base: github.com/eddyvy
+  name: tennis
 database:
   type: postgresql
   tables:
@@ -25,4 +28,4 @@ database:
           type: string
         - name: user_id
           type: integer
-          foreign_key: users.id
+          foreign_key: user.id

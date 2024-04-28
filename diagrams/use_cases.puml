@@ -4,7 +4,7 @@
 (Nuevo proyecto con un CRUD) as new_1
 (Nuevo proyecto con varios CRUD) as new_2
 (Crea un CRUD de proyecto existente) as update_1
-(Interrumpe programa en ejecution) as interrupt_1
+(Interrumpe programa en ejecución) as interrupt_1
 
 user -up-> new_1
 user -right-> new_2

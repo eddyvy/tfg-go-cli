@@ -1,6 +1,6 @@
 @startuml update_project
 
-title Nuevo proyecto
+title Actualizar proyecto
 
 actor usuario as user
 boundary terminal as term
