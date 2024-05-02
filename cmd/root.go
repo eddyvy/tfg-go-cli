@@ -8,12 +8,10 @@ import (
 	"github.com/spf13/viper"
 )
 
-type Config struct {
-	ProjectName string `mapstructure:"projectname"`
-	ProjectBase string `mapstructure:"projectbase"`
+type ProjectConfig struct {
+	ProjectName string `mapstructure:"project_name"`
+	ProjectBase string `mapstructure:"project_base"`
 }
-
-var cfg Config
 
 var rootCmd = &cobra.Command{
 	Use:   "tfg [project name]",
@@ -21,15 +19,6 @@ var rootCmd = &cobra.Command{
 	Long: `This applications is a tool created as a final degree project
 with the aim of creating a new project with the use of a CLI.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		// arg := args[0]
-		// err := helloworld.CreateHelloWorld(arg)
-
-		// if err != nil {
-		// 	fmt.Println("Error creating project:", err)
-		// } else {
-		// 	fmt.Println("Hello world app created successfully!")
-		// }
-
 		viper.Unmarshal(&cfg)
 
 		for cfg.ProjectName == "" {
@@ -50,10 +39,10 @@ with the aim of creating a new project with the use of a CLI.`,
 }
 
 func init() {
-	rootCmd.PersistentFlags().StringP("projectname", "n", "", "project name")
-	rootCmd.PersistentFlags().StringP("projectbase", "b", "", "base project directory eg. github.com/spf13/")
-	viper.BindPFlag("projectbase", rootCmd.PersistentFlags().Lookup("projectbase"))
-	viper.BindPFlag("projectname", rootCmd.PersistentFlags().Lookup("projectname"))
+	rootCmd.PersistentFlags().StringP("project_base", "pb", "", "base project directory eg. github.com/myaccount/")
+	rootCmd.PersistentFlags().StringP("project_name", "pn", "", "project name")
+	viper.BindPFlag("project_base", rootCmd.PersistentFlags().Lookup("project_base"))
+	viper.BindPFlag("project_name", rootCmd.PersistentFlags().Lookup("project_name"))
 }
 
 func Execute() {

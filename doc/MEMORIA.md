@@ -73,6 +73,9 @@ Se definirá como CRUD a la cración de 5 endpoints uno para leer todos los recu
 - [Github Copilot](https://github.com/features/copilot)
 - [Viper](https://github.com/spf13/viper)
 
-## Proyecto a crear
+## Pasos seguidos
 
+- Creado proyecto con Cobra que genera un proyecto con un Hello World hecho en Go
 - Se crea una API Rest con dependencias como el framework Go Fiber
+- Importe de librería de Viper y creada una configuración inicial
+- Creación de configuración y conexión a la base de datos Postgresql
