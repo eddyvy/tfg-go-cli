@@ -5,13 +5,7 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
-
-type ProjectConfig struct {
-	ProjectName string `mapstructure:"project_name"`
-	ProjectBase string `mapstructure:"project_base"`
-}
 
 var rootCmd = &cobra.Command{
 	Use:   "tfg [project name]",
@@ -19,19 +13,34 @@ var rootCmd = &cobra.Command{
 	Long: `This applications is a tool created as a final degree project
 with the aim of creating a new project with the use of a CLI.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		viper.Unmarshal(&cfg)
-
-		for cfg.ProjectName == "" {
-			fmt.Println("Please enter a project name (e.g. my_app):")
-			fmt.Scanln(&cfg.ProjectName)
+		pConf, err := readProjectConfig()
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
 		}
 
-		for cfg.ProjectBase == "" {
-			fmt.Println("Please enter a project base (e.g. github.com/spf13/):")
-			fmt.Scanln(&cfg.ProjectBase)
+		fmt.Println(pConf)
+
+		dConf, err := readDatabaseConfig()
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
 		}
 
-		fmt.Println(cfg)
+		fmt.Println(dConf)
+
+		db, err := connectDatabase(dConf)
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+		defer db.Close()
+
+		err = listTables(db)
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
 
 		fmt.Println("Creating project...")
 	},
@@ -39,10 +48,8 @@ with the aim of creating a new project with the use of a CLI.`,
 }
 
 func init() {
-	rootCmd.PersistentFlags().StringP("project_base", "pb", "", "base project directory eg. github.com/myaccount/")
-	rootCmd.PersistentFlags().StringP("project_name", "pn", "", "project name")
-	viper.BindPFlag("project_base", rootCmd.PersistentFlags().Lookup("project_base"))
-	viper.BindPFlag("project_name", rootCmd.PersistentFlags().Lookup("project_name"))
+	initProjectFlags(rootCmd)
+	initDatabaseFlags(rootCmd)
 }
 
 func Execute() {
