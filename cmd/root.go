@@ -36,11 +36,13 @@ with the aim of creating a new project with the use of a CLI.`,
 		}
 		defer db.Close()
 
-		err = listTables(db)
+		tables, err := readTables(db)
 		if err != nil {
 			fmt.Println(err)
 			os.Exit(1)
 		}
+
+		selectOption("Select your tables", tables)
 
 		fmt.Println("Creating project...")
 	},

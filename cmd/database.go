@@ -107,22 +107,26 @@ func connectDatabase(cfg *DatabaseConfig) (*sql.DB, error) {
 	return db, nil
 }
 
-func listTables(db *sql.DB) error {
+func readTables(db *sql.DB) ([]string, error) {
 	rows, err := db.Query("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'")
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer rows.Close()
 
-	fmt.Println("Tables:")
+	var tables []string
 	for rows.Next() {
 		var tableName string
 		err = rows.Scan(&tableName)
 		if err != nil {
-			return err
+			return nil, err
 		}
-		fmt.Println(tableName)
+		tables = append(tables, tableName)
 	}
 
-	return nil
+	if tables == nil {
+		return nil, fmt.Errorf("no tables found in the database")
+	}
+
+	return tables, nil
 }
