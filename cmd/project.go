@@ -2,6 +2,8 @@ package cmd
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 
 	"github.com/manifoldco/promptui"
 	"github.com/spf13/cobra"
@@ -55,4 +57,42 @@ func readProjectConfig() (*ProjectConfig, error) {
 	fmt.Println("Project base:", cfg.ProjectBase)
 
 	return &cfg, nil
+}
+
+func createProject(projectCfg *ProjectConfig, dbCfg *DatabaseConfig, tables []string) error {
+	currentDir, err := os.Getwd()
+	if err != nil {
+		fmt.Println("Error getting current directory:", err)
+		os.Exit(1)
+	}
+	projectDir := filepath.Join(currentDir, projectCfg.ProjectName)
+
+	isNew, err := isNewProject(projectDir)
+	if err != nil {
+		return err
+	}
+
+	if isNew {
+		err := os.MkdirAll(projectDir, 0755)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func isNewProject(projectDir string) (bool, error) {
+	_, err := os.Stat(projectDir)
+
+	if os.IsNotExist(err) {
+		return true, nil
+	}
+
+	_, err = os.Stat(filepath.Join(projectDir, "tfg.yml"))
+	if os.IsNotExist(err) {
+		return false, fmt.Errorf("a folder with the same name already exists")
+	}
+
+	return false, nil
 }

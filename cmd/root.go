@@ -45,6 +45,12 @@ with the aim of creating a new project with the use of a CLI.`,
 		fmt.Println("Chosen tables:", tables)
 		os.Stdout.Sync()
 		fmt.Println("Creating project...")
+
+		err = createProject(pConf, dConf, tables)
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
 	},
 	Args: cobra.MatchAll(cobra.ArbitraryArgs),
 }
