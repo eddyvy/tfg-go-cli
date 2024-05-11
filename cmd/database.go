@@ -3,8 +3,10 @@ package cmd
 import (
 	"database/sql"
 	"fmt"
+	"os"
 
 	_ "github.com/lib/pq"
+	"github.com/manifoldco/promptui"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -50,34 +52,60 @@ func readDatabaseConfig() (*DatabaseConfig, error) {
 		return nil, err
 	}
 
+	prompt := promptui.Prompt{HideEntered: true}
+
 	for cfg.Type == "" {
-		fmt.Println("Please enter a database type (e.g. postgresql):")
-		fmt.Scanln(&cfg.Type)
+		prompt.Label = "Please enter a database type (e.g. postgresql)"
+		cfg.Type, err = prompt.Run()
+		if err != nil {
+			return nil, err
+		}
 	}
+	fmt.Println("Database type:", cfg.Type)
 
 	for cfg.Host == "" {
-		fmt.Println("Please enter a database host (e.g. localhost):")
-		fmt.Scanln(&cfg.Host)
+		prompt.Label = "Please enter a database host (e.g. localhost)"
+		cfg.Host, err = prompt.Run()
+		if err != nil {
+			return nil, err
+		}
 	}
+	fmt.Println("Host:", cfg.Host)
 
 	for cfg.Port == "" {
-		fmt.Println("Please enter a database port (e.g. 5432):")
-		fmt.Scanln(&cfg.Port)
+		prompt.Label = "Please enter a database port (e.g. 5432)"
+		cfg.Port, err = prompt.Run()
+		if err != nil {
+			return nil, err
+		}
 	}
+	fmt.Println("Port:", cfg.Port)
 
 	for cfg.Database == "" {
-		fmt.Println("Please enter a database name (e.g. postgres):")
-		fmt.Scanln(&cfg.Database)
+		prompt.Label = "Please enter the database name (e.g. postgres)"
+		cfg.Database, err = prompt.Run()
+		if err != nil {
+			return nil, err
+		}
 	}
+	fmt.Println("Database:", cfg.Database)
 
 	for cfg.User == "" {
-		fmt.Println("Please enter a database user:")
-		fmt.Scanln(&cfg.User)
+		prompt.Label = "Please enter a database user"
+		cfg.User, err = prompt.Run()
+		if err != nil {
+			return nil, err
+		}
 	}
+	fmt.Println("User:", cfg.User)
 
 	for cfg.Password == "" {
-		fmt.Println("Please enter a database password:")
-		fmt.Scanln(&cfg.Password)
+		prompt.Label = "Please enter a database password"
+		prompt.Mask = '*'
+		cfg.Password, err = prompt.Run()
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return &cfg, nil
@@ -107,7 +135,7 @@ func connectDatabase(cfg *DatabaseConfig) (*sql.DB, error) {
 	return db, nil
 }
 
-func readTables(db *sql.DB) ([]string, error) {
+func chooseTables(db *sql.DB) ([]string, error) {
 	rows, err := db.Query("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'")
 	if err != nil {
 		return nil, err
@@ -128,5 +156,23 @@ func readTables(db *sql.DB) ([]string, error) {
 		return nil, fmt.Errorf("no tables found in the database")
 	}
 
-	return tables, nil
+	prompt := promptui.Select{
+		Label:        "Select table",
+		Items:        append([]string{"All tables"}, tables...),
+		HideSelected: true,
+		HideHelp:     true,
+	}
+
+	_, result, err := prompt.Run()
+	os.Stdout.Sync()
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result == "All tables" {
+		return tables, nil
+	}
+
+	return []string{result}, nil
 }

@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 
+	"github.com/manifoldco/promptui"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -27,15 +28,31 @@ func readProjectConfig() (*ProjectConfig, error) {
 		return nil, err
 	}
 
+	prompt := promptui.Prompt{HideEntered: true}
+
 	for cfg.ProjectName == "" {
-		fmt.Println("Please enter a project name (e.g. my_app):")
-		fmt.Scanln(&cfg.ProjectName)
+		prompt.Label = "Please enter a project name (e.g. my_app)"
+		cfg.ProjectName, err = prompt.Run()
+		if err != nil {
+			return nil, err
+		}
 	}
+	fmt.Println("Projec name:", cfg.ProjectName)
 
 	for cfg.ProjectBase == "" {
-		fmt.Println("Please enter a project base (e.g. github.com/spf13/):")
-		fmt.Scanln(&cfg.ProjectBase)
+		prompt.Label = "Please enter a project base (e.g. github.com/spf13/)"
+		cfg.ProjectBase, err = prompt.Run()
+		if err != nil {
+			return nil, err
+		}
+
+		runes := []rune(cfg.ProjectBase)
+		lastChar := runes[len(runes)-1]
+		if lastChar != '/' {
+			cfg.ProjectBase += "/"
+		}
 	}
+	fmt.Println("Project base:", cfg.ProjectBase)
 
 	return &cfg, nil
 }

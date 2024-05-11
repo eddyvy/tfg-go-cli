@@ -36,14 +36,14 @@ with the aim of creating a new project with the use of a CLI.`,
 		}
 		defer db.Close()
 
-		tables, err := readTables(db)
+		tables, err := chooseTables(db)
 		if err != nil {
 			fmt.Println(err)
 			os.Exit(1)
 		}
 
-		selectOption("Select your tables", tables)
-
+		fmt.Println("Chosen tables:", tables)
+		os.Stdout.Sync()
 		fmt.Println("Creating project...")
 	},
 	Args: cobra.MatchAll(cobra.ArbitraryArgs),

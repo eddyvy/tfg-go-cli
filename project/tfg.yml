@@ -1,6 +1,6 @@
 version: 0.0.1
 project:
-  base: github.com/eddyvy
+  base: github.com/eddyvy/
   name: tennis
 database:
   type: postgresql
