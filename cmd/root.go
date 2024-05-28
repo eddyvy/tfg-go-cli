@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/eddyvy/tfg-go-cli/internal"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -14,13 +15,13 @@ var rootCmd = &cobra.Command{
 	Long: `This applications is a tool created as a final degree project
 with the aim of creating a new project with the use of a CLI.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		conf, err := readFlagsConfig()
+		conf, err := internal.ReadFlagsConfig()
 		if err != nil {
 			fmt.Println(err)
 			os.Exit(1)
 		}
 
-		err = ConfigureDatabase(conf)
+		err = internal.ConfigureDatabase(conf)
 		if err != nil {
 			fmt.Println(err)
 			os.Exit(1)

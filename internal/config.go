@@ -1,4 +1,4 @@
-package cmd
+package internal
 
 import (
 	"fmt"
@@ -51,7 +51,7 @@ func (d *DatabaseConfig) ConnectionString() string {
 	return fmt.Sprintf("%s://%s:%s@%s:%s/%s?sslmode=%s", d.Type, d.User, d.Password, d.Host, d.Port, d.Database, d.SSL)
 }
 
-func readFlagsConfig() (*GlobalConfig, error) {
+func ReadFlagsConfig() (*GlobalConfig, error) {
 	var proCfg ProjectConfig
 
 	err := viper.Unmarshal(&proCfg)
