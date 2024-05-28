@@ -7,6 +7,10 @@ import (
 )
 
 func SetRoutes(app *fiber.App) {
+	app.Get("/health", func(c *fiber.Ctx) error {
+		return c.JSON(fiber.Map{"status": "UP"})
+	})
+
 	app.Get("/players", player.GetPlayers)
 	app.Get("/players/:id", player.GetPlayer)
 	app.Post("/players", player.CreatePlayer)

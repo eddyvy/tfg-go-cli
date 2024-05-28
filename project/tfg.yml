@@ -14,7 +14,6 @@ database:
           type: string
         - name: email
           type: string
-          unique: true
         - name: password
           type: string
     - name: post
@@ -28,4 +27,3 @@ database:
           type: string
         - name: user_id
           type: integer
-          foreign_key: user.id

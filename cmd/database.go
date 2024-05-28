@@ -7,108 +7,69 @@ import (
 
 	_ "github.com/lib/pq"
 	"github.com/manifoldco/promptui"
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
-type DatabaseConfig struct {
-	Type     string `mapstructure:"db_type"`
-	Host     string `mapstructure:"db_host"`
-	Port     string `mapstructure:"db_port"`
-	Database string `mapstructure:"db_database"`
-	User     string `mapstructure:"db_user"`
-	Password string `mapstructure:"db_pass"`
-	SSL      string `mapstructure:"db_ssl"`
+var postgresToGoTypes = map[string]string{
+	"integer":                     "int",
+	"bigint":                      "int64",
+	"smallint":                    "int16",
+	"boolean":                     "bool",
+	"real":                        "float32",
+	"double precision":            "float64",
+	"numeric":                     "*big.Rat", // Arbitrary-precision numeric types can be represented using big.Rat in Go
+	"money":                       "float64",
+	"character varying":           "string",
+	"text":                        "string",
+	"date":                        "time.Time",
+	"timestamp without time zone": "time.Time",
+	"timestamp with time zone":    "time.Time",
+	"json":                        "json.RawMessage",
+	"jsonb":                       "json.RawMessage",
+	"uuid":                        "uuid.UUID", // You'll need to use a package like github.com/google/uuid for this
+	"bytea":                       "[]byte",    // Binary data can be represented as a byte slice in Go
+	"point":                       "string",    // There's no direct equivalent for geometric types in Go, so you might want to use string and parse them manually
+	"line":                        "string",
+	"lseg":                        "string",
+	"box":                         "string",
+	"path":                        "string",
+	"polygon":                     "string",
+	"circle":                      "string",
+	"cidr":                        "net.IPNet", // You can use the net package in Go to work with network addresses
+	"inet":                        "net.IP",
+	"macaddr":                     "net.HardwareAddr",
+	"macaddr8":                    "net.HardwareAddr",
+	"bit":                         "[]byte", // Bit strings can be represented as byte slices in Go
+	"bit varying":                 "[]byte",
+	"array":                       "[]interface{}",     // Arrays can be represented as slices in Go, but you'll need to handle them separately because the type name includes the element type (e.g., integer[])
+	"hstore":                      "map[string]string", // Hstore can be represented as a map in Go, but you'll need a package like github.com/lib/pq to work with it
 }
 
-func (d *DatabaseConfig) ConnectionString() string {
-	return fmt.Sprintf("%s://%s:%s@%s:%s/%s?sslmode=%s", d.Type, d.User, d.Password, d.Host, d.Port, d.Database, d.SSL)
-}
-
-func initDatabaseFlags(cmd *cobra.Command) {
-	cmd.PersistentFlags().StringP("db_type", "", "", "database type (e.g. postgresql) ONLY postgresql is supported")
-	cmd.PersistentFlags().StringP("db_host", "", "", "database host (e.g. 127.0.0.1)")
-	cmd.PersistentFlags().StringP("db_port", "", "", "database port (e.g. 5432)")
-	cmd.PersistentFlags().StringP("db_database", "", "", "database name")
-	cmd.PersistentFlags().StringP("db_user", "", "", "database user")
-	cmd.PersistentFlags().StringP("db_pass", "", "", "database password")
-	cmd.PersistentFlags().StringP("db_ssl", "", "", "ssl mode enabled")
-	viper.SetDefault("db_type", "postgresql")
-	viper.SetDefault("db_ssl", "disable")
-	viper.BindPFlag("db_type", cmd.PersistentFlags().Lookup("db_type"))
-	viper.BindPFlag("db_host", cmd.PersistentFlags().Lookup("db_host"))
-	viper.BindPFlag("db_port", cmd.PersistentFlags().Lookup("db_port"))
-	viper.BindPFlag("db_database", cmd.PersistentFlags().Lookup("db_database"))
-	viper.BindPFlag("db_user", cmd.PersistentFlags().Lookup("db_user"))
-	viper.BindPFlag("db_pass", cmd.PersistentFlags().Lookup("db_pass"))
-	viper.BindPFlag("db_ssl", cmd.PersistentFlags().Lookup("db_ssl"))
-}
-
-func readDatabaseConfig() (*DatabaseConfig, error) {
-	var cfg DatabaseConfig
-
-	err := viper.Unmarshal(&cfg)
+func ConfigureDatabase(cfg *GlobalConfig) error {
+	fmt.Println("Connecting to database...")
+	db, err := connectDatabase(cfg.DatabaseConfig)
 	if err != nil {
-		return nil, err
+		return err
+	}
+	defer db.Close()
+	fmt.Println("Successfully connected to the database")
+
+	tableNames, err := chooseTables(db, cfg.DatabaseConfig.Schema)
+	if err != nil {
+		return err
 	}
 
-	prompt := promptui.Prompt{HideEntered: true}
-
-	for cfg.Type == "" {
-		prompt.Label = "Please enter a database type (e.g. postgresql)"
-		cfg.Type, err = prompt.Run()
+	fmt.Println("Reading table details...")
+	for _, tableName := range tableNames {
+		tableDef, err := readTableData(db, tableName)
 		if err != nil {
-			return nil, err
+			return err
 		}
-	}
-	fmt.Println("Database type:", cfg.Type)
 
-	for cfg.Host == "" {
-		prompt.Label = "Please enter a database host (e.g. localhost)"
-		cfg.Host, err = prompt.Run()
-		if err != nil {
-			return nil, err
-		}
+		cfg.DatabaseConfig.Tables = append(cfg.DatabaseConfig.Tables, tableDef)
 	}
-	fmt.Println("Host:", cfg.Host)
+	fmt.Println("Successfully read table details")
 
-	for cfg.Port == "" {
-		prompt.Label = "Please enter a database port (e.g. 5432)"
-		cfg.Port, err = prompt.Run()
-		if err != nil {
-			return nil, err
-		}
-	}
-	fmt.Println("Port:", cfg.Port)
-
-	for cfg.Database == "" {
-		prompt.Label = "Please enter the database name (e.g. postgres)"
-		cfg.Database, err = prompt.Run()
-		if err != nil {
-			return nil, err
-		}
-	}
-	fmt.Println("Database:", cfg.Database)
-
-	for cfg.User == "" {
-		prompt.Label = "Please enter a database user"
-		cfg.User, err = prompt.Run()
-		if err != nil {
-			return nil, err
-		}
-	}
-	fmt.Println("User:", cfg.User)
-
-	for cfg.Password == "" {
-		prompt.Label = "Please enter a database password"
-		prompt.Mask = '*'
-		cfg.Password, err = prompt.Run()
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	return &cfg, nil
+	return nil
 }
 
 func connectDatabase(cfg *DatabaseConfig) (*sql.DB, error) {
@@ -116,8 +77,6 @@ func connectDatabase(cfg *DatabaseConfig) (*sql.DB, error) {
 		fmt.Println("Sorry, only \"postgresql\" database type is supported")
 		return nil, fmt.Errorf("sorry, database type %s is not supported", cfg.Type)
 	}
-
-	fmt.Println("Connecting to database...")
 
 	connStr := cfg.ConnectionString()
 	db, err := sql.Open("postgres", connStr)
@@ -130,13 +89,11 @@ func connectDatabase(cfg *DatabaseConfig) (*sql.DB, error) {
 		return nil, err
 	}
 
-	fmt.Println("Successfully connected to the database")
-
 	return db, nil
 }
 
-func chooseTables(db *sql.DB) ([]string, error) {
-	rows, err := db.Query("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'")
+func chooseTables(db *sql.DB, schema string) ([]string, error) {
+	rows, err := db.Query("SELECT table_name FROM information_schema.tables WHERE table_schema = $1", schema)
 	if err != nil {
 		return nil, err
 	}
@@ -175,4 +132,50 @@ func chooseTables(db *sql.DB) ([]string, error) {
 	}
 
 	return []string{result}, nil
+}
+
+func readTableData(db *sql.DB, table string) (*TableDefinition, error) {
+	var tableDef TableDefinition
+	rows, err := db.Query(`
+			SELECT 
+					c.column_name, 
+					c.data_type, 
+					c.is_nullable, 
+					c.column_default,
+					(
+							SELECT COUNT(*)
+							FROM information_schema.key_column_usage AS kcu
+							INNER JOIN information_schema.table_constraints AS tc
+							ON kcu.constraint_name = tc.constraint_name
+							WHERE kcu.table_name = c.table_name
+							AND kcu.column_name = c.column_name
+							AND tc.constraint_type = 'PRIMARY KEY'
+					) > 0 AS is_primary_key
+			FROM information_schema.columns AS c
+			WHERE c.table_name = $1
+	`, table)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var column ColumnDefinition
+		var colType string
+		var nullable string
+		var defaultVal sql.NullString
+
+		err = rows.Scan(&column.Name, &colType, &nullable, &defaultVal, &column.IsPrimaryKey)
+		if err != nil {
+			return nil, err
+		}
+		column.Type = postgresToGoTypes[colType]
+		column.Nullable = nullable == "YES"
+		column.HasDefault = defaultVal.Valid
+		tableDef.Columns = append(tableDef.Columns, &column)
+	}
+
+	tableDef.Name = table
+
+	return &tableDef, nil
 }
