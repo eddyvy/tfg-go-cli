@@ -1,4 +1,4 @@
-package player
+package {{.Table.Name}}
 
 import (
 	"log"
@@ -9,79 +9,79 @@ import (
 )
 
 func HandleGetAll(c *fiber.Ctx) error {
-	players, err := findAll()
+	{{.Table.Name}}s, err := findAll()
 
 	if err != nil {
 		log.Println(err)
 		return c.Status(http.StatusBadRequest).JSON(map[string]string{"message": err.Error()})
 	}
 
-	return c.JSON(&players)
+	return c.JSON(&{{.Table.Name}}s)
 }
 
 func HandleGetOne(c *fiber.Ctx) error {
 	idParam := c.Params("id")
 
-	id, err := parseId(idParam)
+	id, err := parser.StringToInt(idParam)
 	if err != nil {
 		return c.Status(http.StatusBadRequest).JSON("Invalid ID")
 	}
 
-	player, err := findOne(id)
+	{{.Table.Name}}, err := findOne(id)
 
 	if err != nil {
 		log.Println(err)
 		return c.Status(http.StatusInternalServerError).JSON(map[string]string{"message": err.Error()})
 	}
 
-	return c.JSON(&player)
+	return c.JSON(&{{.Table.Name}})
 }
 
 func HandlePost(c *fiber.Ctx) error {
-	player := new(Input)
+	{{.Table.Name}} := new(Input)
 
-	if err := c.BodyParser(player); err != nil {
+	if err := c.BodyParser({{.Table.Name}}); err != nil {
 		return c.Status(http.StatusBadRequest).JSON("Invalid input")
 	}
 
-	newPlayer, err := create(player)
+	new{{.Table.Name}}, err := create({{.Table.Name}})
 
 	if err != nil {
 		log.Println(err)
 		return c.Status(http.StatusInternalServerError).JSON(map[string]string{"message": err.Error()})
 	}
 
-	return c.Status(201).JSON(&newPlayer)
+	return c.Status(201).JSON(&new{{.Table.Name}})
 }
 
 func HandlePut(c *fiber.Ctx) error {
 	idParam := c.Params("id")
 
-	id, err := parseId(idParam)
+	id, err := parser.StringToInt(idParam)
 	if err != nil {
 		return c.Status(http.StatusBadRequest).JSON("Invalid ID")
 	}
 
-	player := new(Input)
+	{{.Table.Name}} := new(Input)
 
-	if err := c.BodyParser(player); err != nil {
+	if err := c.BodyParser({{.Table.Name}}); err != nil {
 		return c.Status(http.StatusBadRequest).JSON("Invalid input")
 	}
 
-	updatedPlayer, err := update(id, player)
+	updated{{.Table.Name}}, err := update(id, {{.Table.Name}})
 
 	if err != nil {
 		log.Println(err)
 		return c.Status(http.StatusInternalServerError).JSON(map[string]string{"message": err.Error()})
 	}
 
-	return c.Status(http.StatusCreated).JSON(&updatedPlayer)
+	return c.Status(http.StatusCreated).JSON(&updated{{.Table.Name}})
 }
 
 func HandleDelete(c *fiber.Ctx) error {
 	idParam := c.Params("id")
 
-	idInt, err := parseId(idParam)
+	idInt, err := parser.StringToInt(idParam)
 	if err != nil {
 		return c.Status(http.StatusBadRequest).JSON("Invalid ID")
 	}

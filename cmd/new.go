@@ -50,6 +50,8 @@ var newCmd = &cobra.Command{
 		// 	fmt.Println(err)
 		// 	os.Exit(1)
 		// }
+
+		fmt.Println("Project created successfully!")
 	},
 	Args: cobra.RangeArgs(0, 1),
 }

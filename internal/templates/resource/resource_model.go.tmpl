@@ -1,14 +1,18 @@
-package player
+package {{.Table.Name}}
 
-type Model struct {
-	Id      int    `json:"id"`
-	Name    string `json:"name"`
-	Age     int    `json:"age"`
-	Country string `json:"country"`
+import (
+	"encoding/json"
+	"math/big"
+	"net"
+	"time"
+
+	"github.com/google/uuid"
+)
+
+type Model struct { {{range .Table.Columns}}
+	{{.GoName}} {{.Type}} `json:"{{.Name}}"`{{end}}
 }
 
-type Input struct {
-	Name    string
-	Age     int
-	Country string
+type Input struct { {{range .Table.NotPrimaryKeys}}
+	{{.GoName}} {{.Type}} `json:"{{.Name}}"`{{end}}
 }
