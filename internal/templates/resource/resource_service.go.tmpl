@@ -1,6 +1,13 @@
 package {{.Table.Name}}
 
-import "{{.ProjectConfig.Base}}{{.ProjectConfig.Name}}/internal/database"
+import (
+	"encoding/json"
+	"math/big"
+	"net"
+	"time"
+	
+	"{{.ProjectConfig.Base}}{{.ProjectConfig.Name}}/internal/database"
+)
 
 func findAll() ([]*Model, error) {
 	sqlStr := `SELECT * FROM {{.Table.Name}}`
@@ -13,7 +20,7 @@ func findAll() ([]*Model, error) {
 	{{.Table.Name}}s := make([]*Model, 0)
 	for rows.Next() {
 		{{.Table.Name}} := new(Model)
-		err := rows.Scan(&{{.Table.Name}}.Id, &{{.Table.Name}}.Name, &{{.Table.Name}}.Age, &{{.Table.Name}}.Country)
+		err := rows.Scan({{.Table.ModelScanParams}})
 		if err != nil {
 			return nil, err
 		}
@@ -23,12 +30,12 @@ func findAll() ([]*Model, error) {
 	return {{.Table.Name}}s, nil
 }
 
-func findOne(id int) (*Model, error) {
-	sqlStr := `SELECT * FROM {{.Table.Name}} WHERE id = $1`
+func findOne({{.Table.PrimaryKeysFuncParams}}) (*Model, error) {
+	sqlStr := `SELECT * FROM {{.Table.Name}} {{.Table.PrimaryKeysWhereClause}}`
 
 	{{.Table.Name}} := new(Model)
-	row := database.DB.QueryRow(sqlStr, id)
-	err := row.Scan(&{{.Table.Name}}.Id, &{{.Table.Name}}.Name, &{{.Table.Name}}.Age, &{{.Table.Name}}.Country)
+	row := database.DB.QueryRow(sqlStr, {{.Table.PrimaryKeysByComma}})
+	err := row.Scan({{.Table.ModelScanParams}})
 
 	if err != nil {
 		return nil, err

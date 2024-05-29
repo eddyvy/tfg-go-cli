@@ -2,7 +2,6 @@ package internal
 
 import (
 	"fmt"
-	"unicode"
 
 	"github.com/manifoldco/promptui"
 	"github.com/spf13/viper"
@@ -37,52 +36,6 @@ type DatabaseConfig struct {
 
 func (d *DatabaseConfig) ConnectionString() string {
 	return fmt.Sprintf("%s://%s:%s@%s:%s/%s?sslmode=%s&search_path=%s", d.Type, d.User, d.Password, d.Host, d.Port, d.Database, d.SSL, d.Schema)
-}
-
-type TableDefinition struct {
-	Name    string              `yaml:"name"`
-	Columns []*ColumnDefinition `yaml:"columns"`
-}
-
-func (t *TableDefinition) PrimaryKeys() []*ColumnDefinition {
-	columns := make([]*ColumnDefinition, 0)
-	for _, col := range t.Columns {
-		if col.IsPrimaryKey {
-			columns = append(columns, col)
-		}
-	}
-	return columns
-}
-
-func (t *TableDefinition) NotPrimaryKeys() []*ColumnDefinition {
-	columns := make([]*ColumnDefinition, 0)
-	for _, col := range t.Columns {
-		if !col.IsPrimaryKey {
-			columns = append(columns, col)
-		}
-	}
-	return columns
-}
-
-type ColumnDefinition struct {
-	Name         string `yaml:"name"`
-	Type         string `yaml:"type"`
-	Nullable     bool   `yaml:"nullable"`
-	IsPrimaryKey bool   `yaml:"is_primary_key"`
-	HasDefault   bool   `yaml:"has_default"`
-}
-
-func (c *ColumnDefinition) ParserFunc() string {
-	return goTypesToParserFunc[c.Type]
-}
-
-func (c *ColumnDefinition) GoName() string {
-	if c.Name == "" {
-		return ""
-	}
-	runes := []rune(c.Name)
-	runes[0] = unicode.ToUpper(runes[0])
-	return string(runes)
 }
 
 func ReadFlagsConfig(projectName string) (*GlobalConfig, error) {

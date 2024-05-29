@@ -17,15 +17,6 @@ var embedTemplates embed.FS
 const BASE_PATH = "templates/base"
 const RESOURCE_PATH = "templates/resource"
 
-type ResourceParams struct {
-	ProjectConfig *ProjectConfig
-	Table         *TableDefinition
-}
-
-func (r *ResourceParams) EndpointOne() string {
-	return "/" + r.Table.Name + "/{id}"
-}
-
 func ExecuteTemplatesBase(cfg *GlobalConfig) error {
 	return executeTemplatesBaseRec("", cfg)
 }
