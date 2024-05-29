@@ -17,8 +17,54 @@ var embedTemplates embed.FS
 const BASE_PATH = "templates/base"
 const RESOURCE_PATH = "templates/resource"
 
+type ResourceParams struct {
+	ProjectConfig *ProjectConfig
+	Table         *TableDefinition
+}
+
+func (r *ResourceParams) EndpointOne() string {
+	return "/" + r.Table.Name + "/{id}"
+}
+
 func ExecuteTemplatesBase(cfg *GlobalConfig) error {
 	return executeTemplatesBaseRec("", cfg)
+}
+
+func ExecuteTemplatesResources(cfg *GlobalConfig) error {
+	resourcesTypes := []string{"handler", "model", "service"}
+
+	// Path to Internal
+	execDir, err := os.Getwd()
+	if err != nil {
+		return err
+	}
+	internalDir := filepath.Join(execDir, cfg.ProjectConfig.Name, "internal")
+
+	// Execute the templates for each table
+	for _, table := range cfg.DatabaseConfig.Tables {
+		tableDir := filepath.Join(internalDir, table.Name)
+		err := os.MkdirAll(tableDir, os.ModePerm)
+		if err != nil {
+			return err
+		}
+
+		resourcesParams := &ResourceParams{
+			ProjectConfig: cfg.ProjectConfig,
+			Table:         table,
+		}
+
+		for _, resType := range resourcesTypes {
+			err = createFileFromTmpl(
+				RESOURCE_PATH+"/resource_"+resType+".go.tmpl",
+				tableDir,
+				table.Name+"_"+resType+".go",
+				resourcesParams)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }
 
 func executeTemplatesBaseRec(relPath string, cfg *GlobalConfig) error {
@@ -51,36 +97,13 @@ func executeTemplatesBaseRec(relPath string, cfg *GlobalConfig) error {
 				return err
 			}
 		} else {
-			// Read the template file
-			tmplFile, err := embedTemplates.Open(BASE_PATH + nextPath)
-			if err != nil {
-				return err
-			}
-			defer tmplFile.Close()
-
 			// Get the new file name
-			newFileName := parseFileName(file.Name())
-
-			// Parse the content of the template
-			tmplBytes, err := io.ReadAll(tmplFile)
-			if err != nil {
-				return err
-			}
-			tmplContent, err := executeTmpl(string(tmplBytes), newFileName, cfg)
-			if err != nil {
-				return err
+			newFileName := file.Name()
+			if strings.HasSuffix(file.Name(), ".tmpl") {
+				newFileName = strings.TrimSuffix(file.Name(), ".tmpl")
 			}
 
-			// Create the destination file
-			destPath := filepath.Join(currentDir, relPath, newFileName)
-			destFile, err := os.Create(destPath)
-			if err != nil {
-				return err
-			}
-			defer destFile.Close()
-
-			// Write the content of the template to the destination file
-			_, err = destFile.WriteString(tmplContent)
+			err = createFileFromTmpl(BASE_PATH+nextPath, filepath.Join(currentDir, relPath), newFileName, cfg)
 			if err != nil {
 				return err
 			}
@@ -90,12 +113,41 @@ func executeTemplatesBaseRec(relPath string, cfg *GlobalConfig) error {
 	return nil
 }
 
-func parseFileName(fileName string) string {
-	newFileName := fileName
-	if strings.HasSuffix(fileName, ".tmpl") {
-		newFileName = strings.TrimSuffix(fileName, ".tmpl")
+func createFileFromTmpl(tmplEmbedPath, destDir, destFilename string, data interface{}) error {
+	// Read template from embedded files
+	tmplFile, err := embedTemplates.Open(tmplEmbedPath)
+	if err != nil {
+		return err
 	}
-	return newFileName
+	defer tmplFile.Close()
+
+	// Read template file content bytes
+	tmplBytes, err := io.ReadAll(tmplFile)
+	if err != nil {
+		return err
+	}
+
+	// Execute the template and get parsed string
+	tmplContent, err := executeTmpl(string(tmplBytes), destFilename, data)
+	if err != nil {
+		return err
+	}
+
+	// Create final file
+	tmplFilePath := filepath.Join(destDir, destFilename)
+	tmplDestFile, err := os.Create(tmplFilePath)
+	if err != nil {
+		return err
+	}
+	defer tmplDestFile.Close()
+
+	// Write the content of the template to the destination file
+	_, err = tmplDestFile.WriteString(tmplContent)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func executeTmpl(tmplText, tmplName string, data interface{}) (string, error) {

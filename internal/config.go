@@ -51,6 +51,20 @@ func (d *DatabaseConfig) ConnectionString() string {
 	return fmt.Sprintf("%s://%s:%s@%s:%s/%s?sslmode=%s&search_path=%s", d.Type, d.User, d.Password, d.Host, d.Port, d.Database, d.SSL, d.Schema)
 }
 
+func (t *TableDefinition) PrimaryKeys() []*ColumnDefinition {
+	columns := make([]*ColumnDefinition, 0)
+	for _, col := range t.Columns {
+		if col.IsPrimaryKey {
+			columns = append(columns, col)
+		}
+	}
+	return columns
+}
+
+func (c *ColumnDefinition) ParserFunc() string {
+	return goTypesToParserFunc[c.Type]
+}
+
 func ReadFlagsConfig(projectName string) (*GlobalConfig, error) {
 	var proCfg ProjectConfig
 

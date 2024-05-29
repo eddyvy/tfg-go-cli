@@ -26,6 +26,12 @@ func CreateNewProject(cfg *GlobalConfig) error {
 		return err
 	}
 
+	err = ExecuteTemplatesResources(cfg)
+	if err != nil {
+		RemoveAll(cfg)
+		return err
+	}
+
 	return nil
 }
 

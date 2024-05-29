@@ -4,45 +4,11 @@ import (
 	"database/sql"
 	"fmt"
 	"os"
+	"strings"
 
 	_ "github.com/lib/pq"
 	"github.com/manifoldco/promptui"
 )
-
-var postgresToGoTypes = map[string]string{
-	"integer":                     "int",
-	"bigint":                      "int64",
-	"smallint":                    "int16",
-	"boolean":                     "bool",
-	"real":                        "float32",
-	"double precision":            "float64",
-	"numeric":                     "*big.Rat", // Arbitrary-precision numeric types can be represented using big.Rat in Go
-	"money":                       "float64",
-	"character varying":           "string",
-	"text":                        "string",
-	"date":                        "time.Time",
-	"timestamp without time zone": "time.Time",
-	"timestamp with time zone":    "time.Time",
-	"json":                        "json.RawMessage",
-	"jsonb":                       "json.RawMessage",
-	"uuid":                        "uuid.UUID", // You'll need to use a package like github.com/google/uuid for this
-	"bytea":                       "[]byte",    // Binary data can be represented as a byte slice in Go
-	"point":                       "string",    // There's no direct equivalent for geometric types in Go, so you might want to use string and parse them manually
-	"line":                        "string",
-	"lseg":                        "string",
-	"box":                         "string",
-	"path":                        "string",
-	"polygon":                     "string",
-	"circle":                      "string",
-	"cidr":                        "net.IPNet", // You can use the net package in Go to work with network addresses
-	"inet":                        "net.IP",
-	"macaddr":                     "net.HardwareAddr",
-	"macaddr8":                    "net.HardwareAddr",
-	"bit":                         "[]byte", // Bit strings can be represented as byte slices in Go
-	"bit varying":                 "[]byte",
-	"array":                       "[]interface{}",     // Arrays can be represented as slices in Go, but you'll need to handle them separately because the type name includes the element type (e.g., integer[])
-	"hstore":                      "map[string]string", // Hstore can be represented as a map in Go, but you'll need a package like github.com/lib/pq to work with it
-}
 
 func ConfigureDatabase(cfg *GlobalConfig) error {
 	fmt.Println("Connecting to database...")
@@ -106,7 +72,7 @@ func chooseTables(db *sql.DB, schema string) ([]string, error) {
 		if err != nil {
 			return nil, err
 		}
-		tables = append(tables, tableName)
+		tables = append(tables, strings.ToLower(tableName))
 	}
 
 	if tables == nil {
@@ -161,14 +127,16 @@ func readTableData(db *sql.DB, table string) (*TableDefinition, error) {
 
 	for rows.Next() {
 		var column ColumnDefinition
+		var columnName string
 		var colType string
 		var nullable string
 		var defaultVal sql.NullString
 
-		err = rows.Scan(&column.Name, &colType, &nullable, &defaultVal, &column.IsPrimaryKey)
+		err = rows.Scan(&columnName, &colType, &nullable, &defaultVal, &column.IsPrimaryKey)
 		if err != nil {
 			return nil, err
 		}
+		column.Name = strings.ToLower(columnName)
 		column.Type = postgresToGoTypes[colType]
 		column.Nullable = nullable == "YES"
 		column.HasDefault = defaultVal.Valid

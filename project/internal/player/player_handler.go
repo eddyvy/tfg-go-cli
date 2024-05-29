@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/eddyvy/template/internal/parser"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -21,7 +22,7 @@ func HandleGetAll(c *fiber.Ctx) error {
 func HandleGetOne(c *fiber.Ctx) error {
 	idParam := c.Params("id")
 
-	id, err := parseId(idParam)
+	id, err := parser.StringToInt(idParam)
 	if err != nil {
 		return c.Status(http.StatusBadRequest).JSON("Invalid ID")
 	}
@@ -56,7 +57,7 @@ func HandlePost(c *fiber.Ctx) error {
 func HandlePut(c *fiber.Ctx) error {
 	idParam := c.Params("id")
 
-	id, err := parseId(idParam)
+	id, err := parser.StringToInt(idParam)
 	if err != nil {
 		return c.Status(http.StatusBadRequest).JSON("Invalid ID")
 	}
@@ -80,7 +81,7 @@ func HandlePut(c *fiber.Ctx) error {
 func HandleDelete(c *fiber.Ctx) error {
 	idParam := c.Params("id")
 
-	idInt, err := parseId(idParam)
+	idInt, err := parser.StringToInt(idParam)
 	if err != nil {
 		return c.Status(http.StatusBadRequest).JSON("Invalid ID")
 	}

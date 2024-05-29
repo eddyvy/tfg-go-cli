@@ -1,8 +1,6 @@
 package referee
 
 import (
-	"strconv"
-
 	"github.com/eddyvy/template/internal/database"
 )
 
@@ -79,13 +77,4 @@ func delete(id int) error {
 	}
 
 	return nil
-}
-
-func parseId(idParam string) (int, error) {
-	id, err := strconv.Atoi(idParam)
-	if err != nil {
-		return 0, err
-	}
-
-	return id, nil
 }
