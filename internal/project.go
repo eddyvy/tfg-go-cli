@@ -16,6 +16,13 @@ func CreateNewProject(cfg *GlobalConfig) error {
 
 	err = createTfgYaml(cfg)
 	if err != nil {
+		RemoveAll(cfg)
+		return err
+	}
+
+	err = ExecuteTemplatesBase(cfg)
+	if err != nil {
+		RemoveAll(cfg)
 		return err
 	}
 
@@ -51,8 +58,25 @@ func createTfgYaml(cfg *GlobalConfig) error {
 	if err != nil {
 		return err
 	}
-	fmt.Println(string(tfgYmlBytes))
-
-	tfgYmlPath := filepath.Join(cfg.ProjectConfig.Name, TFG_FILENAME)
+	tfgYmlPath := filepath.Join(cfg.ProjectConfig.Name, cfg.ConfigFile)
 	return os.WriteFile(tfgYmlPath, tfgYmlBytes, os.ModePerm)
+}
+
+func RemoveAll(cfg *GlobalConfig) error {
+	currentDir, err := os.Getwd()
+	if err != nil {
+		fmt.Println("Error getting current directory:", err)
+		return err
+	}
+
+	projectDir := filepath.Join(currentDir, cfg.ProjectConfig.Name)
+
+	fmt.Println("Coming back changes...")
+	err = os.RemoveAll(projectDir)
+	if err != nil {
+		fmt.Println("Error removing directory:", err)
+		return err
+	}
+
+	return nil
 }

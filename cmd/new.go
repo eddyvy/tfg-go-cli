@@ -44,6 +44,12 @@ var newCmd = &cobra.Command{
 			fmt.Println(err)
 			os.Exit(1)
 		}
+
+		// err = internal.RemoveAll(conf)
+		// if err != nil {
+		// 	fmt.Println(err)
+		// 	os.Exit(1)
+		// }
 	},
 	Args: cobra.RangeArgs(0, 1),
 }
