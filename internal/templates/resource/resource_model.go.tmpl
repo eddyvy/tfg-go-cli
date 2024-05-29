@@ -1,6 +1,7 @@
 package {{.Table.Name}}
 
 import (
+	"database/sql"
 	"encoding/json"
 	"math/big"
 	"net"
@@ -10,9 +11,13 @@ import (
 )
 
 type Model struct { {{range .Table.Columns}}
-	{{.GoName}} {{.Type}} `json:"{{.Name}}"`{{end}}
+	{{.GoName}} {{.GoType}} `json:"{{.Name}}"`{{end}}
 }
 
-type Input struct { {{range .Table.NotPrimaryKeys}}
-	{{.GoName}} {{.Type}} `json:"{{.Name}}"`{{end}}
+type CreateInput struct { {{range .Table.CreateInputColumns}}
+	{{.GoName}} {{.GoType}} `json:"{{.Name}}"`{{end}}
+}
+
+type UpdateInput struct { {{range .Table.UpdateInputColumns}}
+	{{.GoName}} {{.GoType}} `json:"{{.Name}}"`{{end}}
 }

@@ -24,6 +24,10 @@ type ColumnDefinition struct {
 	HasDefault   bool   `yaml:"has_default"`
 }
 
+func (t *TableDefinition) InputName() string {
+	return t.Name + "Input"
+}
+
 func (t *TableDefinition) PrimaryKeys() []*ColumnDefinition {
 	columns := make([]*ColumnDefinition, 0)
 	for _, col := range t.Columns {
@@ -34,7 +38,18 @@ func (t *TableDefinition) PrimaryKeys() []*ColumnDefinition {
 	return columns
 }
 
-func (t *TableDefinition) NotPrimaryKeys() []*ColumnDefinition {
+func (t *TableDefinition) CreateInputColumns() []*ColumnDefinition {
+	columns := make([]*ColumnDefinition, 0)
+	for _, col := range t.Columns {
+		if col.IsPrimaryKey && col.HasDefault {
+			continue
+		}
+		columns = append(columns, col)
+	}
+	return columns
+}
+
+func (t *TableDefinition) UpdateInputColumns() []*ColumnDefinition {
 	columns := make([]*ColumnDefinition, 0)
 	for _, col := range t.Columns {
 		if !col.IsPrimaryKey {
@@ -42,6 +57,14 @@ func (t *TableDefinition) NotPrimaryKeys() []*ColumnDefinition {
 		}
 	}
 	return columns
+}
+
+func (t *TableDefinition) ColumnsByComma() string {
+	strArr := make([]string, 0)
+	for _, col := range t.Columns {
+		strArr = append(strArr, col.Name)
+	}
+	return strings.Join(strArr, ", ")
 }
 
 func (t *TableDefinition) PrimaryKeysByComma() string {
@@ -55,7 +78,7 @@ func (t *TableDefinition) PrimaryKeysByComma() string {
 func (t *TableDefinition) PrimaryKeysFuncParams() string {
 	strArr := make([]string, 0)
 	for _, col := range t.PrimaryKeys() {
-		strArr = append(strArr, fmt.Sprintf("%s %s", col.Name, col.Type))
+		strArr = append(strArr, fmt.Sprintf("%s %s", col.Name, col.GoType()))
 	}
 	return strings.Join(strArr, ", ")
 }
@@ -88,8 +111,55 @@ func (t *TableDefinition) ModelScanParams() string {
 	return strings.Join(strArr, ", ")
 }
 
+func (t *TableDefinition) CreateInputByComma() string {
+	strArr := make([]string, 0)
+	for _, col := range t.CreateInputColumns() {
+		strArr = append(strArr, col.Name)
+	}
+	return strings.Join(strArr, ", ")
+}
+
+func (t *TableDefinition) CreateInputNumbersByComma() string {
+	strArr := make([]string, 0)
+	for idx := range t.CreateInputColumns() {
+		strArr = append(strArr, fmt.Sprintf("$%d", idx+1))
+	}
+	return strings.Join(strArr, ", ")
+}
+
+func (t *TableDefinition) CreateInputParams() string {
+	strArr := make([]string, 0)
+	for _, col := range t.CreateInputColumns() {
+		strArr = append(strArr, fmt.Sprintf("%s.%s", t.InputName(), col.GoName()))
+	}
+	return strings.Join(strArr, ", ")
+}
+
+func (t *TableDefinition) UpdateInputByComma() string {
+	strArr := make([]string, 0)
+	for _, col := range t.UpdateInputColumns() {
+		strArr = append(strArr, col.Name)
+	}
+	return strings.Join(strArr, ", ")
+}
+
+func (t *TableDefinition) UpdateInputParams() string {
+	strArr := make([]string, 0)
+	for _, col := range t.CreateInputColumns() {
+		strArr = append(strArr, fmt.Sprintf("%s.%s", t.InputName(), col.GoName()))
+	}
+	return strings.Join(strArr, ", ")
+}
+
+func (c *ColumnDefinition) GoType() string {
+	if c.Nullable {
+		return postgresToNullableGoTypes[c.Type]
+	}
+	return postgresToGoTypes[c.Type]
+}
+
 func (c *ColumnDefinition) ParserFunc() string {
-	return goTypesToParserFunc[c.Type]
+	return goTypesToParserFunc[postgresToGoTypes[c.Type]]
 }
 
 func (c *ColumnDefinition) GoName() string {

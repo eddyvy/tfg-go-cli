@@ -137,7 +137,7 @@ func readTableData(db *sql.DB, table string) (*TableDefinition, error) {
 			return nil, err
 		}
 		column.Name = strings.ToLower(columnName)
-		column.Type = postgresToGoTypes[colType]
+		column.Type = colType
 		column.Nullable = nullable == "YES"
 		column.HasDefault = defaultVal.Valid
 		tableDef.Columns = append(tableDef.Columns, &column)

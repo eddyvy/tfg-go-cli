@@ -42,20 +42,20 @@ func HandleGetOne(c *fiber.Ctx) error {
 }
 
 func HandlePost(c *fiber.Ctx) error {
-	{{.Table.Name}} := new(Input)
+	{{.Table.InputName}} := new(CreateInput)
 
-	if err := c.BodyParser({{.Table.Name}}); err != nil {
+	if err := c.BodyParser({{.Table.InputName}}); err != nil {
 		return c.Status(http.StatusBadRequest).JSON("Invalid input")
 	}
 
-	new{{.Table.Name}}, err := create({{.Table.Name}})
+	{{.Table.Name}}, err := create({{.Table.InputName}})
 
 	if err != nil {
 		log.Println(err)
 		return c.Status(http.StatusInternalServerError).JSON(map[string]string{"message": err.Error()})
 	}
 
-	return c.Status(201).JSON(&new{{.Table.Name}})
+	return c.Status(201).JSON(&{{.Table.Name}})
 }
 
 func HandlePut(c *fiber.Ctx) error {
@@ -66,20 +66,20 @@ func HandlePut(c *fiber.Ctx) error {
 		return c.Status(http.StatusBadRequest).JSON("Invalid ID")
 	}
 
-	{{.Table.Name}} := new(Input)
+	{{.Table.InputName}} := new(UpdateInput)
 
-	if err := c.BodyParser({{.Table.Name}}); err != nil {
+	if err := c.BodyParser({{.Table.InputName}}); err != nil {
 		return c.Status(http.StatusBadRequest).JSON("Invalid input")
 	}
 
-	updated{{.Table.Name}}, err := update(id, {{.Table.Name}})
+	{{.Table.Name}}, err := update(id, {{.Table.InputName}})
 
 	if err != nil {
 		log.Println(err)
 		return c.Status(http.StatusInternalServerError).JSON(map[string]string{"message": err.Error()})
 	}
 
-	return c.Status(http.StatusCreated).JSON(&updated{{.Table.Name}})
+	return c.Status(http.StatusCreated).JSON(&{{.Table.Name}})
 }
 
 func HandleDelete(c *fiber.Ctx) error {

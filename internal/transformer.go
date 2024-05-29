@@ -35,6 +35,41 @@ var postgresToGoTypes = map[string]string{
 	"hstore":                      "map[string]string", // Hstore can be represented as a map in Go, but you'll need a package like github.com/lib/pq to work with it
 }
 
+var postgresToNullableGoTypes = map[string]string{
+	"integer":                     "sql.NullInt32",
+	"bigint":                      "sql.NullInt64",
+	"smallint":                    "sql.NullInt32",
+	"boolean":                     "sql.NullBool",
+	"real":                        "sql.NullFloat64",
+	"double precision":            "sql.NullFloat64",
+	"numeric":                     "*big.Rat",
+	"money":                       "sql.NullFloat64",
+	"character varying":           "sql.NullString",
+	"text":                        "sql.NullString",
+	"date":                        "sql.NullTime",
+	"timestamp without time zone": "sql.NullTime",
+	"timestamp with time zone":    "sql.NullTime",
+	"json":                        "json.RawMessage",
+	"jsonb":                       "json.RawMessage",
+	"uuid":                        "uuid.UUID",
+	"bytea":                       "[]byte",
+	"point":                       "sql.NullString",
+	"line":                        "sql.NullString",
+	"lseg":                        "sql.NullString",
+	"box":                         "sql.NullString",
+	"path":                        "sql.NullString",
+	"polygon":                     "sql.NullString",
+	"circle":                      "sql.NullString",
+	"cidr":                        "net.IPNet",
+	"inet":                        "net.IP",
+	"macaddr":                     "net.HardwareAddr",
+	"macaddr8":                    "net.HardwareAddr",
+	"bit":                         "[]byte",
+	"bit varying":                 "[]byte",
+	"array":                       "[]interface{}",
+	"hstore":                      "map[string]string",
+}
+
 var goTypesToParserFunc = map[string]string{
 	"int":               "StringToInt",
 	"int64":             "StringToInt64",
