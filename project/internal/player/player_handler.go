@@ -3,94 +3,93 @@ package player
 import (
 	"log"
 	"net/http"
-	"strconv"
 
 	"github.com/gofiber/fiber/v2"
 )
 
-func GetPlayers(c *fiber.Ctx) error {
-	players, err := readAllPlayers()
+func HandleGetAll(c *fiber.Ctx) error {
+	players, err := findAll()
 
 	if err != nil {
-		log.Fatalln(err)
-		return c.Status(http.StatusBadRequest).JSON(err.Error())
+		log.Println(err)
+		return c.Status(http.StatusBadRequest).JSON(map[string]string{"message": err.Error()})
 	}
 
 	return c.JSON(&players)
 }
 
-func GetPlayer(c *fiber.Ctx) error {
-	id := c.Params("id")
+func HandleGetOne(c *fiber.Ctx) error {
+	idParam := c.Params("id")
 
-	idInt, err := strconv.Atoi(id)
+	id, err := parseId(idParam)
 	if err != nil {
 		return c.Status(http.StatusBadRequest).JSON("Invalid ID")
 	}
 
-	player, err := readOnePlayer(idInt)
+	player, err := findOne(id)
 
 	if err != nil {
-		log.Fatalln(err)
-		return c.Status(http.StatusInternalServerError).JSON(err.Error())
+		log.Println(err)
+		return c.Status(http.StatusInternalServerError).JSON(map[string]string{"message": err.Error()})
 	}
 
 	return c.JSON(&player)
 }
 
-func CreatePlayer(c *fiber.Ctx) error {
-	player := new(PlayerInput)
+func HandlePost(c *fiber.Ctx) error {
+	player := new(Input)
 
 	if err := c.BodyParser(player); err != nil {
 		return c.Status(http.StatusBadRequest).JSON("Invalid input")
 	}
 
-	newPlayer, err := createPlayer(player)
+	newPlayer, err := create(player)
 
 	if err != nil {
-		log.Fatalln(err)
-		return c.Status(http.StatusInternalServerError).JSON(err.Error())
+		log.Println(err)
+		return c.Status(http.StatusInternalServerError).JSON(map[string]string{"message": err.Error()})
 	}
 
 	return c.Status(201).JSON(&newPlayer)
 }
 
-func UpdatePlayer(c *fiber.Ctx) error {
-	id := c.Params("id")
+func HandlePut(c *fiber.Ctx) error {
+	idParam := c.Params("id")
 
-	idInt, err := strconv.Atoi(id)
+	id, err := parseId(idParam)
 	if err != nil {
 		return c.Status(http.StatusBadRequest).JSON("Invalid ID")
 	}
 
-	player := new(PlayerInput)
+	player := new(Input)
 
 	if err := c.BodyParser(player); err != nil {
 		return c.Status(http.StatusBadRequest).JSON("Invalid input")
 	}
 
-	updatedPlayer, err := updatePlayer(idInt, player)
+	updatedPlayer, err := update(id, player)
 
 	if err != nil {
-		log.Fatalln(err)
-		return c.Status(http.StatusInternalServerError).JSON(err.Error())
+		log.Println(err)
+		return c.Status(http.StatusInternalServerError).JSON(map[string]string{"message": err.Error()})
 	}
 
 	return c.Status(http.StatusCreated).JSON(&updatedPlayer)
 }
 
-func DeletePlayer(c *fiber.Ctx) error {
-	id := c.Params("id")
+func HandleDelete(c *fiber.Ctx) error {
+	idParam := c.Params("id")
 
-	idInt, err := strconv.Atoi(id)
+	idInt, err := parseId(idParam)
 	if err != nil {
 		return c.Status(http.StatusBadRequest).JSON("Invalid ID")
 	}
 
-	err = deletePlayer(idInt)
+	err = delete(idInt)
 
 	if err != nil {
-		log.Fatalln(err)
-		return c.Status(http.StatusInternalServerError).JSON(err.Error())
+		log.Println(err)
+		return c.Status(http.StatusInternalServerError).JSON(map[string]string{"message": err.Error()})
 	}
 
 	return c.JSON(map[string]string{"message": "Resource deleted successfully"})

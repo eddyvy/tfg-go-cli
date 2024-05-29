@@ -1,12 +1,12 @@
 package referee
 
-type RefereeModel struct {
+type Model struct {
 	Id      int    `json:"id"`
 	Name    string `json:"name"`
 	Country string `json:"country"`
 }
 
-type RefereeInput struct {
+type Input struct {
 	Name    string
 	Country string
 }

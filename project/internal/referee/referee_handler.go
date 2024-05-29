@@ -3,94 +3,93 @@ package referee
 import (
 	"log"
 	"net/http"
-	"strconv"
 
 	"github.com/gofiber/fiber/v2"
 )
 
-func GetReferees(c *fiber.Ctx) error {
-	referees, err := readAllReferees()
+func HandleGetAll(c *fiber.Ctx) error {
+	players, err := findAll()
 
 	if err != nil {
-		log.Fatalln(err)
-		return c.Status(http.StatusBadRequest).JSON(err.Error())
+		log.Println(err)
+		return c.Status(http.StatusBadRequest).JSON(map[string]string{"message": err.Error()})
 	}
 
-	return c.JSON(&referees)
+	return c.JSON(&players)
 }
 
-func GetReferee(c *fiber.Ctx) error {
-	id := c.Params("id")
+func HandleGetOne(c *fiber.Ctx) error {
+	idParam := c.Params("id")
 
-	idInt, err := strconv.Atoi(id)
+	id, err := parseId(idParam)
 	if err != nil {
 		return c.Status(http.StatusBadRequest).JSON("Invalid ID")
 	}
 
-	referee, err := readOneReferee(idInt)
+	player, err := findOne(id)
 
 	if err != nil {
-		log.Fatalln(err)
-		return c.Status(http.StatusInternalServerError).JSON(err.Error())
+		log.Println(err)
+		return c.Status(http.StatusInternalServerError).JSON(map[string]string{"message": err.Error()})
 	}
 
-	return c.JSON(&referee)
+	return c.JSON(&player)
 }
 
-func CreateReferee(c *fiber.Ctx) error {
-	referee := new(RefereeInput)
+func HandlePost(c *fiber.Ctx) error {
+	player := new(Input)
 
-	if err := c.BodyParser(referee); err != nil {
+	if err := c.BodyParser(player); err != nil {
 		return c.Status(http.StatusBadRequest).JSON("Invalid input")
 	}
 
-	newReferee, err := createReferee(referee)
+	newPlayer, err := create(player)
 
 	if err != nil {
-		log.Fatalln(err)
-		return c.Status(http.StatusInternalServerError).JSON(err.Error())
+		log.Println(err)
+		return c.Status(http.StatusInternalServerError).JSON(map[string]string{"message": err.Error()})
 	}
 
-	return c.Status(201).JSON(&newReferee)
+	return c.Status(201).JSON(&newPlayer)
 }
 
-func UpdateReferee(c *fiber.Ctx) error {
-	id := c.Params("id")
+func HandlePut(c *fiber.Ctx) error {
+	idParam := c.Params("id")
 
-	idInt, err := strconv.Atoi(id)
+	id, err := parseId(idParam)
 	if err != nil {
 		return c.Status(http.StatusBadRequest).JSON("Invalid ID")
 	}
 
-	referee := new(RefereeInput)
+	player := new(Input)
 
-	if err := c.BodyParser(referee); err != nil {
+	if err := c.BodyParser(player); err != nil {
 		return c.Status(http.StatusBadRequest).JSON("Invalid input")
 	}
 
-	updatedReferee, err := updateReferee(idInt, referee)
+	updatedPlayer, err := update(id, player)
 
 	if err != nil {
-		log.Fatalln(err)
-		return c.Status(http.StatusInternalServerError).JSON(err.Error())
+		log.Println(err)
+		return c.Status(http.StatusInternalServerError).JSON(map[string]string{"message": err.Error()})
 	}
 
-	return c.Status(http.StatusCreated).JSON(&updatedReferee)
+	return c.Status(http.StatusCreated).JSON(&updatedPlayer)
 }
 
-func DeleteReferee(c *fiber.Ctx) error {
-	id := c.Params("id")
+func HandleDelete(c *fiber.Ctx) error {
+	idParam := c.Params("id")
 
-	idInt, err := strconv.Atoi(id)
+	idInt, err := parseId(idParam)
 	if err != nil {
 		return c.Status(http.StatusBadRequest).JSON("Invalid ID")
 	}
 
-	err = deleteReferee(idInt)
+	err = delete(idInt)
 
 	if err != nil {
-		log.Fatalln(err)
-		return c.Status(http.StatusInternalServerError).JSON(err.Error())
+		log.Println(err)
+		return c.Status(http.StatusInternalServerError).JSON(map[string]string{"message": err.Error()})
 	}
 
 	return c.JSON(map[string]string{"message": "Resource deleted successfully"})

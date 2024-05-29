@@ -1,13 +1,13 @@
 package player
 
-type PlayerModel struct {
+type Model struct {
 	Id      int    `json:"id"`
 	Name    string `json:"name"`
 	Age     int    `json:"age"`
 	Country string `json:"country"`
 }
 
-type PlayerInput struct {
+type Input struct {
 	Name    string
 	Age     int
 	Country string

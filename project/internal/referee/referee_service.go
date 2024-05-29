@@ -1,10 +1,12 @@
 package referee
 
 import (
+	"strconv"
+
 	"github.com/eddyvy/template/internal/database"
 )
 
-func readAllReferees() ([]*RefereeModel, error) {
+func findAll() ([]*Model, error) {
 	sqlStr := `SELECT * FROM referee`
 	rows, err := database.DB.Query(sqlStr)
 	if err != nil {
@@ -12,9 +14,9 @@ func readAllReferees() ([]*RefereeModel, error) {
 	}
 	defer rows.Close()
 
-	referees := make([]*RefereeModel, 0)
+	referees := make([]*Model, 0)
 	for rows.Next() {
-		referee := new(RefereeModel)
+		referee := new(Model)
 		err := rows.Scan(&referee.Id, &referee.Name, &referee.Country)
 		if err != nil {
 			return nil, err
@@ -25,10 +27,10 @@ func readAllReferees() ([]*RefereeModel, error) {
 	return referees, nil
 }
 
-func readOneReferee(id int) (*RefereeModel, error) {
+func findOne(id int) (*Model, error) {
 	sqlStr := `SELECT * FROM referee WHERE id = $1`
 
-	referee := new(RefereeModel)
+	referee := new(Model)
 	row := database.DB.QueryRow(sqlStr, id)
 	err := row.Scan(&referee.Id, &referee.Name, &referee.Country)
 	if err != nil {
@@ -38,7 +40,7 @@ func readOneReferee(id int) (*RefereeModel, error) {
 	return referee, nil
 }
 
-func createReferee(referee *RefereeInput) (*RefereeModel, error) {
+func create(referee *Input) (*Model, error) {
 	sqlStr := `INSERT INTO referee (name, country) VALUES ($1, $2) RETURNING id`
 
 	var id int
@@ -48,13 +50,13 @@ func createReferee(referee *RefereeInput) (*RefereeModel, error) {
 		return nil, err
 	}
 
-	return &RefereeModel{
+	return &Model{
 		Id:      id,
 		Name:    referee.Name,
 		Country: referee.Country}, nil
 }
 
-func updateReferee(id int, referee *RefereeInput) (*RefereeModel, error) {
+func update(id int, referee *Input) (*Model, error) {
 	sqlStr := `UPDATE referee SET name = $1, country = $2 WHERE id = $3`
 
 	_, err := database.DB.Exec(sqlStr, referee.Name, referee.Country, id)
@@ -62,13 +64,13 @@ func updateReferee(id int, referee *RefereeInput) (*RefereeModel, error) {
 		return nil, err
 	}
 
-	return &RefereeModel{
+	return &Model{
 		Id:      id,
 		Name:    referee.Name,
 		Country: referee.Country}, nil
 }
 
-func deleteReferee(id int) error {
+func delete(id int) error {
 	sqlStr := `DELETE FROM referee WHERE id = $1`
 
 	_, err := database.DB.Exec(sqlStr, id)
@@ -77,4 +79,13 @@ func deleteReferee(id int) error {
 	}
 
 	return nil
+}
+
+func parseId(idParam string) (int, error) {
+	id, err := strconv.Atoi(idParam)
+	if err != nil {
+		return 0, err
+	}
+
+	return id, nil
 }

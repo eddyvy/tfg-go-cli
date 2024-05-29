@@ -1,10 +1,12 @@
 package player
 
 import (
+	"strconv"
+
 	"github.com/eddyvy/template/internal/database"
 )
 
-func readAllPlayers() ([]*PlayerModel, error) {
+func findAll() ([]*Model, error) {
 	sqlStr := `SELECT * FROM player`
 	rows, err := database.DB.Query(sqlStr)
 	if err != nil {
@@ -12,9 +14,9 @@ func readAllPlayers() ([]*PlayerModel, error) {
 	}
 	defer rows.Close()
 
-	players := make([]*PlayerModel, 0)
+	players := make([]*Model, 0)
 	for rows.Next() {
-		player := new(PlayerModel)
+		player := new(Model)
 		err := rows.Scan(&player.Id, &player.Name, &player.Age, &player.Country)
 		if err != nil {
 			return nil, err
@@ -25,12 +27,13 @@ func readAllPlayers() ([]*PlayerModel, error) {
 	return players, nil
 }
 
-func readOnePlayer(id int) (*PlayerModel, error) {
+func findOne(id int) (*Model, error) {
 	sqlStr := `SELECT * FROM player WHERE id = $1`
 
-	player := new(PlayerModel)
+	player := new(Model)
 	row := database.DB.QueryRow(sqlStr, id)
 	err := row.Scan(&player.Id, &player.Name, &player.Age, &player.Country)
+
 	if err != nil {
 		return nil, err
 	}
@@ -38,7 +41,7 @@ func readOnePlayer(id int) (*PlayerModel, error) {
 	return player, nil
 }
 
-func createPlayer(player *PlayerInput) (*PlayerModel, error) {
+func create(player *Input) (*Model, error) {
 	sqlStr := `INSERT INTO player (name, age, country) VALUES ($1, $2, $3) RETURNING id`
 
 	var id int
@@ -48,14 +51,14 @@ func createPlayer(player *PlayerInput) (*PlayerModel, error) {
 		return nil, err
 	}
 
-	return &PlayerModel{
+	return &Model{
 		Id:      id,
 		Name:    player.Name,
 		Age:     player.Age,
 		Country: player.Country}, nil
 }
 
-func updatePlayer(id int, player *PlayerInput) (*PlayerModel, error) {
+func update(id int, player *Input) (*Model, error) {
 	sqlStr := `UPDATE player SET name = $1, age = $2, country = $3 WHERE id = $4`
 
 	_, err := database.DB.Exec(sqlStr, player.Name, player.Age, player.Country, id)
@@ -63,14 +66,14 @@ func updatePlayer(id int, player *PlayerInput) (*PlayerModel, error) {
 		return nil, err
 	}
 
-	return &PlayerModel{
+	return &Model{
 		Id:      id,
 		Name:    player.Name,
 		Age:     player.Age,
 		Country: player.Country}, nil
 }
 
-func deletePlayer(id int) error {
+func delete(id int) error {
 	sqlStr := `DELETE FROM player WHERE id = $1`
 
 	_, err := database.DB.Exec(sqlStr, id)
@@ -79,4 +82,13 @@ func deletePlayer(id int) error {
 	}
 
 	return nil
+}
+
+func parseId(idParam string) (int, error) {
+	id, err := strconv.Atoi(idParam)
+	if err != nil {
+		return 0, err
+	}
+
+	return id, nil
 }
