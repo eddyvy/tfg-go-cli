@@ -13,7 +13,8 @@ var newCmd = &cobra.Command{
 	Use:   "new",
 	Short: "Creates a new project with a REST API from a Postgresql Database",
 	Run: func(cmd *cobra.Command, args []string) {
-		conf, err := internal.ReadFlagsConfig()
+		fmt.Println(args)
+		conf, err := internal.ReadFlagsConfig(args[0])
 		if err != nil {
 			fmt.Println(err)
 			os.Exit(1)
@@ -28,22 +29,23 @@ var newCmd = &cobra.Command{
 		// os.Stdout.Sync()
 		fmt.Println("Creating project...")
 
-		// err = createProject(pConf, dConf, tables)
-		// if err != nil {
-		// 	fmt.Println(err)
-		// 	os.Exit(1)
+		// fmt.Printf("%+v\n", conf)
+		// fmt.Printf("%+v\n", conf.ProjectConfig)
+		// fmt.Printf("%+v\n", conf.DatabaseConfig)
+		// for _, table := range conf.DatabaseConfig.Tables {
+		// 	fmt.Printf("%+v\n", table)
+		// 	for _, col := range table.Columns {
+		// 		fmt.Printf("%+v\n", col)
+		// 	}
 		// }
-		fmt.Printf("%+v\n", conf)
-		fmt.Printf("%+v\n", conf.ProjectConfig)
-		fmt.Printf("%+v\n", conf.DatabaseConfig)
-		for _, table := range conf.DatabaseConfig.Tables {
-			fmt.Printf("%+v\n", table)
-			for _, col := range table.Columns {
-				fmt.Printf("%+v\n", col)
-			}
+
+		err = internal.CreateNewProject(conf)
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
 		}
 	},
-	Args: cobra.ExactArgs(0),
+	Args: cobra.RangeArgs(0, 1),
 }
 
 func init() {

@@ -4,30 +4,55 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+
+	"github.com/go-yaml/yaml"
 )
 
-func createProject(cfg *GlobalConfig, tables []string) error {
+func CreateNewProject(cfg *GlobalConfig) error {
+	err := createProjectFolder(cfg.ProjectConfig.Name)
+	if err != nil {
+		return err
+	}
+
+	err = createTfgYaml(cfg)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func createProjectFolder(projectName string) error {
 	currentDir, err := os.Getwd()
 	if err != nil {
 		fmt.Println("Error getting current directory:", err)
 		os.Exit(1)
 	}
-	projectDir := filepath.Join(currentDir, cfg.ProjectConfig.Name)
-	// templatesDir := filepath.Join(currentDir, "templates")
+	projectDir := filepath.Join(currentDir, projectName)
 
-	projectExists, err := tfgExists(projectDir)
+	_, err = os.Stat(projectDir)
+
+	if err == nil {
+		return fmt.Errorf("a folder with the same name already exists")
+	} else if !os.IsNotExist(err) {
+		return err
+	}
+
+	err = os.MkdirAll(projectDir, os.ModePerm)
 	if err != nil {
 		return err
 	}
 
-	if projectExists {
-		// TODO: Implement project update
-		return nil
-	} else {
-		err := os.MkdirAll(projectDir, 0755)
-		if err != nil {
-			return err
-		}
-		return nil
+	return nil
+}
+
+func createTfgYaml(cfg *GlobalConfig) error {
+	tfgYmlBytes, err := yaml.Marshal(cfg)
+	if err != nil {
+		return err
 	}
+	fmt.Println(string(tfgYmlBytes))
+
+	tfgYmlPath := filepath.Join(cfg.ProjectConfig.Name, TFG_FILENAME)
+	return os.WriteFile(tfgYmlPath, tfgYmlBytes, os.ModePerm)
 }

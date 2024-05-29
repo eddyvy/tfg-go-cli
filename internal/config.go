@@ -11,7 +11,7 @@ const TFG_VERSION = "0.0.1"
 const TFG_FILENAME = "tfg.yml"
 
 type GlobalConfig struct {
-	ConfigFile     string
+	ConfigFile     string          `yaml:"-"`
 	Version        string          `yaml:"version"`
 	ProjectConfig  *ProjectConfig  `yaml:"project"`
 	DatabaseConfig *DatabaseConfig `yaml:"database"`
@@ -24,13 +24,13 @@ type ProjectConfig struct {
 
 type DatabaseConfig struct {
 	Type     string             `mapstructure:"db_type" yaml:"type"`
-	Host     string             `mapstructure:"db_host"`
-	Port     string             `mapstructure:"db_port"`
-	Database string             `mapstructure:"db_database"`
+	Host     string             `mapstructure:"db_host" yaml:"host"`
+	Port     string             `mapstructure:"db_port" yaml:"port"`
+	Database string             `mapstructure:"db_database" yaml:"database"`
 	Schema   string             `mapstructure:"db_schema" yaml:"schema"`
-	User     string             `mapstructure:"db_user"`
-	Password string             `mapstructure:"db_pass"`
-	SSL      string             `mapstructure:"db_ssl"`
+	User     string             `mapstructure:"db_user" yaml:"-"`
+	Password string             `mapstructure:"db_pass" yaml:"-"`
+	SSL      string             `mapstructure:"db_ssl" yaml:"ssl"`
 	Tables   []*TableDefinition `yaml:"tables"`
 }
 
@@ -48,10 +48,10 @@ type ColumnDefinition struct {
 }
 
 func (d *DatabaseConfig) ConnectionString() string {
-	return fmt.Sprintf("%s://%s:%s@%s:%s/%s?sslmode=%s", d.Type, d.User, d.Password, d.Host, d.Port, d.Database, d.SSL)
+	return fmt.Sprintf("%s://%s:%s@%s:%s/%s?sslmode=%s&search_path=%s", d.Type, d.User, d.Password, d.Host, d.Port, d.Database, d.SSL, d.Schema)
 }
 
-func ReadFlagsConfig() (*GlobalConfig, error) {
+func ReadFlagsConfig(projectName string) (*GlobalConfig, error) {
 	var proCfg ProjectConfig
 
 	err := viper.Unmarshal(&proCfg)
@@ -61,6 +61,10 @@ func ReadFlagsConfig() (*GlobalConfig, error) {
 
 	prompt := promptui.Prompt{HideEntered: true}
 
+	if projectName != "" {
+		proCfg.Name = projectName
+	}
+
 	for proCfg.Name == "" {
 		prompt.Label = "Please enter a project name (e.g. my_app)"
 		proCfg.Name, err = prompt.Run()
@@ -68,7 +72,7 @@ func ReadFlagsConfig() (*GlobalConfig, error) {
 			return nil, err
 		}
 	}
-	fmt.Println("Projec name:", proCfg.Name)
+	fmt.Println("Project name:", proCfg.Name)
 
 	for proCfg.Base == "" {
 		prompt.Label = "Please enter a project base (e.g. github.com/spf13/)"
