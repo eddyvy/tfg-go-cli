@@ -49,7 +49,8 @@ func create({{.Table.InputName}} *CreateInput) (*Model, error) {
 	sqlStr := `INSERT INTO {{.Table.Name}} ({{.Table.CreateInputByComma}}) VALUES ({{.Table.CreateInputNumbersByComma}}) RETURNING {{.Table.ColumnsByComma}}`
 
 	{{.Table.Name}} := new(Model)
-	err := database.DB.QueryRow(sqlStr, {{.Table.UpdateInputParams}}).Scan({{.Table.ModelScanParams}})
+	row := database.DB.QueryRow(sqlStr, {{.Table.CreateInputParams}})
+	err := row.Scan({{.Table.ModelScanParams}})
 	if err != nil {
 		return nil, err
 	}
@@ -57,25 +58,23 @@ func create({{.Table.InputName}} *CreateInput) (*Model, error) {
 	return {{.Table.Name}}, nil
 }
 
-func update(id int, {{.Table.Name}} *Input) (*Model, error) {
-	sqlStr := `UPDATE {{.Table.Name}} SET name = $1, age = $2, country = $3 WHERE id = $4`
+func update({{.Table.PrimaryKeysFuncParams}}, {{.Table.InputName}} *UpdateInput) (*Model, error) {
+	sqlStr := `UPDATE {{.Table.Name}} {{.Table.UpdateSetClause}} {{.Table.PrimaryKeysWhereClause}}`
 
-	_, err := database.DB.Exec(sqlStr, {{.Table.Name}}.Name, {{.Table.Name}}.Age, {{.Table.Name}}.Country, id)
+	{{.Table.Name}} := new(Model)
+	row := database.DB.QueryRow(sqlStr, {{.Table.UpdateInputParams}}, {{.Table.PrimaryKeysByComma}})
+	err := row.Scan({{.Table.ModelScanParams}})
 	if err != nil {
 		return nil, err
 	}
 
-	return &Model{
-		Id:      id,
-		Name:    {{.Table.Name}}.Name,
-		Age:     {{.Table.Name}}.Age,
-		Country: {{.Table.Name}}.Country}, nil
+	return {{.Table.Name}}, nil
 }
 
-func delete(id int) error {
-	sqlStr := `DELETE FROM {{.Table.Name}} WHERE id = $1`
+func delete({{.Table.PrimaryKeysFuncParams}}) error {
+	sqlStr := `DELETE FROM {{.Table.Name}} {{.Table.PrimaryKeysWhereClause}}`
 
-	_, err := database.DB.Exec(sqlStr, id)
+	_, err := database.DB.Exec(sqlStr, {{.Table.PrimaryKeysByComma}})
 	if err != nil {
 		return err
 	}

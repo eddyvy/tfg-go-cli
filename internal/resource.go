@@ -145,8 +145,20 @@ func (t *TableDefinition) UpdateInputByComma() string {
 
 func (t *TableDefinition) UpdateInputParams() string {
 	strArr := make([]string, 0)
-	for _, col := range t.CreateInputColumns() {
+	for _, col := range t.UpdateInputColumns() {
 		strArr = append(strArr, fmt.Sprintf("%s.%s", t.InputName(), col.GoName()))
+	}
+	return strings.Join(strArr, ", ")
+}
+
+func (t *TableDefinition) UpdateSetClause() string {
+	strArr := make([]string, 0)
+	for i, col := range t.UpdateInputColumns() {
+		if i == 0 {
+			strArr = append(strArr, fmt.Sprintf("SET %s = $%d", col.Name, i+1))
+		} else {
+			strArr = append(strArr, fmt.Sprintf("%s = $%d", col.Name, i+1))
+		}
 	}
 	return strings.Join(strArr, ", ")
 }
