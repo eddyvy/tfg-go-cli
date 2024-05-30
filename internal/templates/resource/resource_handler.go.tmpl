@@ -23,15 +23,14 @@ func HandleGetAll(c *fiber.Ctx) error {
 	return c.JSON(&{{.Table.Name}}s)
 }
 
-func HandleGetOne(c *fiber.Ctx) error {
-	idParam := c.Params("id")
-
-	id, err := parser.StringToInt(idParam)
+func HandleGetOne(c *fiber.Ctx) error { {{range .Table.PrimaryKeys}}
+	{{.Name}}Param := c.Params("{{.Name}}")
+	{{.Name}}, err := parser.{{.ParserFunc}}({{.Name}}Param)
 	if err != nil {
-		return c.Status(http.StatusBadRequest).JSON("Invalid ID")
+		return c.Status(http.StatusBadRequest).JSON("Invalid {{.Name}}")
 	}
-
-	{{.Table.Name}}, err := findOne(id)
+	{{end}}
+	{{.Table.Name}}, err := findOne({{.Table.PrimaryKeysByComma}})
 
 	if err != nil {
 		log.Println(err)
@@ -55,42 +54,40 @@ func HandlePost(c *fiber.Ctx) error {
 		return c.Status(http.StatusInternalServerError).JSON(map[string]string{"message": err.Error()})
 	}
 
-	return c.Status(201).JSON(&{{.Table.Name}})
+	return c.Status(http.StatusCreated).JSON(&{{.Table.Name}})
 }
 
-func HandlePut(c *fiber.Ctx) error {
-	idParam := c.Params("id")
-
-	id, err := parser.StringToInt(idParam)
+func HandlePut(c *fiber.Ctx) error { {{range .Table.PrimaryKeys}}
+	{{.Name}}Param := c.Params("{{.Name}}")
+	{{.Name}}, err := parser.{{.ParserFunc}}({{.Name}}Param)
 	if err != nil {
-		return c.Status(http.StatusBadRequest).JSON("Invalid ID")
+		return c.Status(http.StatusBadRequest).JSON("Invalid {{.Name}}")
 	}
-
+	{{end}}
 	{{.Table.InputName}} := new(UpdateInput)
 
 	if err := c.BodyParser({{.Table.InputName}}); err != nil {
 		return c.Status(http.StatusBadRequest).JSON("Invalid input")
 	}
 
-	{{.Table.Name}}, err := update(id, {{.Table.InputName}})
+	{{.Table.Name}}, err := update({{.Table.PrimaryKeysByComma}}, {{.Table.InputName}})
 
 	if err != nil {
 		log.Println(err)
 		return c.Status(http.StatusInternalServerError).JSON(map[string]string{"message": err.Error()})
 	}
 
-	return c.Status(http.StatusCreated).JSON(&{{.Table.Name}})
+	return c.JSON(&{{.Table.Name}})
 }
 
-func HandleDelete(c *fiber.Ctx) error {
-	idParam := c.Params("id")
-
-	idInt, err := parser.StringToInt(idParam)
+func HandleDelete(c *fiber.Ctx) error { {{range .Table.PrimaryKeys}}
+	{{.Name}}Param := c.Params("{{.Name}}")
+	{{.Name}}, err := parser.{{.ParserFunc}}({{.Name}}Param)
 	if err != nil {
-		return c.Status(http.StatusBadRequest).JSON("Invalid ID")
+		return c.Status(http.StatusBadRequest).JSON("Invalid {{.Name}}")
 	}
-
-	err = delete(idInt)
+	{{end}}
+	err = delete({{.Table.PrimaryKeysByComma}})
 
 	if err != nil {
 		log.Println(err)
