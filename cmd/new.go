@@ -26,18 +26,7 @@ var newCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		// os.Stdout.Sync()
 		fmt.Println("Creating project...")
-
-		// fmt.Printf("%+v\n", conf)
-		// fmt.Printf("%+v\n", conf.ProjectConfig)
-		// fmt.Printf("%+v\n", conf.DatabaseConfig)
-		// for _, table := range conf.DatabaseConfig.Tables {
-		// 	fmt.Printf("%+v\n", table)
-		// 	for _, col := range table.Columns {
-		// 		fmt.Printf("%+v\n", col)
-		// 	}
-		// }
 
 		err = internal.CreateNewProject(conf)
 		if err != nil {
@@ -45,11 +34,17 @@ var newCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		// err = internal.RemoveAll(conf)
-		// if err != nil {
-		// 	fmt.Println(err)
-		// 	os.Exit(1)
-		// }
+		err = internal.FormatProject(conf)
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+
+		err = internal.TidyProject(conf)
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
 
 		fmt.Println("Project created successfully!")
 	},
