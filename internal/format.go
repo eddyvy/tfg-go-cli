@@ -10,13 +10,7 @@ import (
 )
 
 func FormatProject(cfg *GlobalConfig) error {
-	currentDir, err := os.Getwd()
-	if err != nil {
-		return err
-	}
-	projectDir := filepath.Join(currentDir, cfg.ProjectConfig.Name)
-
-	err = filepath.Walk(projectDir, func(path string, info os.FileInfo, err error) error {
+	err := filepath.Walk(cfg.ProjectConfig.ProjectDir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
@@ -40,15 +34,9 @@ func FormatProject(cfg *GlobalConfig) error {
 }
 
 func TidyProject(cfg *GlobalConfig) error {
-	currentDir, err := os.Getwd()
-	if err != nil {
-		return err
-	}
-	projectDir := filepath.Join(currentDir, cfg.ProjectConfig.Name)
-
 	cmd := exec.Command("go", "mod", "tidy")
-	cmd.Dir = projectDir
-	err = cmd.Run()
+	cmd.Dir = cfg.ProjectConfig.ProjectDir
+	err := cmd.Run()
 	if err != nil {
 		log.Fatal(err)
 	}

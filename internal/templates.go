@@ -23,18 +23,21 @@ func ExecuteTemplatesBase(cfg *GlobalConfig) error {
 	return executeTemplatesBaseRec("", cfg)
 }
 
-func ExecuteTemplatesResources(cfg *GlobalConfig) error {
+func ExecuteTemplatesResources(cfg *GlobalConfig, useUpdating bool) error {
 	resourcesTypes := []string{"handler", "model", "service"}
 
 	// Path to Internal
-	execDir, err := os.Getwd()
-	if err != nil {
-		return err
+	internalDir := filepath.Join(cfg.ProjectConfig.ProjectDir, "internal")
+
+	var tables []*TableDefinition
+	if useUpdating {
+		tables = cfg.DatabaseConfig.UpdatingTables
+	} else {
+		tables = cfg.DatabaseConfig.Tables
 	}
-	internalDir := filepath.Join(execDir, cfg.ProjectConfig.Name, "internal")
 
 	// Execute the templates for each table
-	for _, table := range cfg.DatabaseConfig.Tables {
+	for _, table := range tables {
 		tableDir := filepath.Join(internalDir, table.Name)
 		err := os.MkdirAll(tableDir, os.ModePerm)
 		if err != nil {
@@ -67,11 +70,7 @@ func UpdateRouter(tables []*TableDefinition, cfg *GlobalConfig) error {
 	}
 
 	// Read current router.go file
-	execDir, err := os.Getwd()
-	if err != nil {
-		return err
-	}
-	routerPath := filepath.Join(execDir, cfg.ProjectConfig.Name, "router.go")
+	routerPath := filepath.Join(cfg.ProjectConfig.ProjectDir, "router.go")
 	routerData, err := os.ReadFile(routerPath)
 	if err != nil {
 		return err
@@ -127,14 +126,8 @@ func executeTemplatesBaseRec(relPath string, cfg *GlobalConfig) error {
 		return err
 	}
 
-	execDir, err := os.Getwd()
-	if err != nil {
-		return err
-	}
-	currentDir := filepath.Join(execDir, cfg.ProjectConfig.Name)
-
 	for _, file := range files {
-		destPath := filepath.Join(currentDir, relPath, file.Name())
+		destPath := filepath.Join(cfg.ProjectConfig.ProjectDir, relPath, file.Name())
 		nextPath := relPath + "/" + file.Name()
 
 		if file.IsDir() {
@@ -157,7 +150,7 @@ func executeTemplatesBaseRec(relPath string, cfg *GlobalConfig) error {
 				newFileName = strings.TrimSuffix(file.Name(), ".tmpl")
 			}
 
-			err = createFileFromTmpl(BASE_PATH+nextPath, filepath.Join(currentDir, relPath), newFileName, cfg)
+			err = createFileFromTmpl(BASE_PATH+nextPath, filepath.Join(cfg.ProjectConfig.ProjectDir, relPath), newFileName, cfg)
 			if err != nil {
 				return err
 			}

@@ -2,7 +2,11 @@ package internal
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 
+	"github.com/go-yaml/yaml"
+	"github.com/joho/godotenv"
 	"github.com/manifoldco/promptui"
 	"github.com/spf13/viper"
 )
@@ -18,20 +22,22 @@ type GlobalConfig struct {
 }
 
 type ProjectConfig struct {
-	Name string `mapstructure:"project_name"`
-	Base string `mapstructure:"project_base"`
+	Name       string `mapstructure:"project_name" yaml:"name"`
+	Base       string `mapstructure:"project_base" yaml:"base"`
+	ProjectDir string `yaml:"-"`
 }
 
 type DatabaseConfig struct {
-	Type     string             `mapstructure:"db_type" yaml:"type"`
-	Host     string             `mapstructure:"db_host" yaml:"host"`
-	Port     string             `mapstructure:"db_port" yaml:"port"`
-	Database string             `mapstructure:"db_database" yaml:"database"`
-	Schema   string             `mapstructure:"db_schema" yaml:"schema"`
-	User     string             `mapstructure:"db_user" yaml:"-"`
-	Password string             `mapstructure:"db_pass" yaml:"-"`
-	SSL      string             `mapstructure:"db_ssl" yaml:"ssl"`
-	Tables   []*TableDefinition `yaml:"tables"`
+	Type           string             `mapstructure:"db_type" yaml:"type"`
+	Host           string             `mapstructure:"db_host" yaml:"host"`
+	Port           string             `mapstructure:"db_port" yaml:"port"`
+	Database       string             `mapstructure:"db_database" yaml:"database"`
+	Schema         string             `mapstructure:"db_schema" yaml:"schema"`
+	User           string             `mapstructure:"db_user" yaml:"-"`
+	Password       string             `mapstructure:"db_pass" yaml:"-"`
+	SSL            string             `mapstructure:"db_ssl" yaml:"ssl"`
+	Tables         []*TableDefinition `yaml:"tables"`
+	UpdatingTables []*TableDefinition `yaml:"-"`
 }
 
 func (d *DatabaseConfig) ConnectionString() string {
@@ -51,6 +57,13 @@ func ReadFlagsConfig(projectName string) (*GlobalConfig, error) {
 	if projectName != "" {
 		proCfg.Name = projectName
 	}
+
+	currentDir, err := os.Getwd()
+	if err != nil {
+		fmt.Println("Error getting current directory:", err)
+		os.Exit(1)
+	}
+	proCfg.ProjectDir = filepath.Join(currentDir, projectName)
 
 	for proCfg.Name == "" {
 		prompt.Label = "Please enter a project name (e.g. my_app)"
@@ -152,6 +165,48 @@ func ReadFlagsConfig(projectName string) (*GlobalConfig, error) {
 		ProjectConfig:  &proCfg,
 		DatabaseConfig: &dbCfg,
 	}
+
+	return cfg, nil
+}
+
+func ReadYamlConfig(projectRelPath string) (*GlobalConfig, error) {
+	cfg := &GlobalConfig{ConfigFile: TFG_FILENAME}
+
+	currentDir, err := os.Getwd()
+	if err != nil {
+		fmt.Println("Error getting current directory:", err)
+		return nil, err
+	}
+	projectDir := filepath.Join(currentDir, projectRelPath)
+
+	ymlPath := filepath.Join(projectDir, TFG_FILENAME)
+	yamlFile, err := os.ReadFile(ymlPath)
+	if err != nil {
+		return nil, err
+	}
+
+	err = yaml.Unmarshal(yamlFile, cfg)
+	if err != nil {
+		return nil, err
+	}
+
+	cfg.ProjectConfig.ProjectDir = projectDir
+
+	// Read database user and password fron .env file
+	// Load .env file
+	envPath := filepath.Join(cfg.ProjectConfig.ProjectDir, ".env")
+	env, err := godotenv.Read(envPath)
+	if err != nil {
+		return nil, err
+	}
+
+	// Read database user and password from .env file
+	dbUser := env["DB_USER"]
+	dbPassword := env["DB_PASSWORD"]
+
+	// Set the values in the config
+	cfg.DatabaseConfig.User = dbUser
+	cfg.DatabaseConfig.Password = dbPassword
 
 	return cfg, nil
 }

@@ -26,7 +26,7 @@ func CreateNewProject(cfg *GlobalConfig) error {
 		return err
 	}
 
-	err = ExecuteTemplatesResources(cfg)
+	err = ExecuteTemplatesResources(cfg, false)
 	if err != nil {
 		RemoveAll(cfg)
 		return err
@@ -35,6 +35,25 @@ func CreateNewProject(cfg *GlobalConfig) error {
 	err = UpdateRouter(cfg.DatabaseConfig.Tables, cfg)
 	if err != nil {
 		RemoveAll(cfg)
+		return err
+	}
+
+	return nil
+}
+
+func UpdateProject(cfg *GlobalConfig) error {
+	err := createTfgYaml(cfg)
+	if err != nil {
+		return err
+	}
+
+	err = ExecuteTemplatesResources(cfg, true)
+	if err != nil {
+		return err
+	}
+
+	err = UpdateRouter(cfg.DatabaseConfig.UpdatingTables, cfg)
+	if err != nil {
 		return err
 	}
 

@@ -13,8 +13,12 @@ var newCmd = &cobra.Command{
 	Use:   "new",
 	Short: "Creates a new project with a REST API from a Postgresql Database",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println(args)
-		conf, err := internal.ReadFlagsConfig(args[0])
+		projectName := ""
+		if len(args) == 1 {
+			projectName = args[0]
+		}
+
+		conf, err := internal.ReadFlagsConfig(projectName)
 		if err != nil {
 			fmt.Println(err)
 			os.Exit(1)
@@ -47,6 +51,8 @@ var newCmd = &cobra.Command{
 		}
 
 		fmt.Println("Project created successfully!")
+		fmt.Println("Run \"cd " + conf.ProjectConfig.ProjectDir + "\" to navigate to the project folder.")
+		fmt.Println("Run \"go run .\" to start your new server! 🚀")
 	},
 	Args: cobra.RangeArgs(0, 1),
 }
