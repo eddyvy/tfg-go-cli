@@ -16,6 +16,8 @@ var embedTemplates embed.FS
 
 const BASE_PATH = "templates/base"
 const RESOURCE_PATH = "templates/resource"
+const ROUTER_PATH_ENDPOINTS = "templates/router/endpoints.go.tmpl"
+const ROUTER_PATH_IMPORTS = "templates/router/imports.go.tmpl"
 
 func ExecuteTemplatesBase(cfg *GlobalConfig) error {
 	return executeTemplatesBaseRec("", cfg)
@@ -55,6 +57,67 @@ func ExecuteTemplatesResources(cfg *GlobalConfig) error {
 			}
 		}
 	}
+	return nil
+}
+
+func UpdateRouter(tables []*TableDefinition, cfg *GlobalConfig) error {
+	config := &UpdateRouterParams{
+		ProjectConfig: cfg.ProjectConfig,
+		Tables:        tables,
+	}
+
+	// Read current router.go file
+	execDir, err := os.Getwd()
+	if err != nil {
+		return err
+	}
+	routerPath := filepath.Join(execDir, cfg.ProjectConfig.Name, "router.go")
+	routerData, err := os.ReadFile(routerPath)
+	if err != nil {
+		return err
+	}
+	source := string(routerData)
+
+	// Execute the imports template
+	importsTmplFile, err := embedTemplates.Open(ROUTER_PATH_IMPORTS)
+	if err != nil {
+		return err
+	}
+	defer importsTmplFile.Close()
+	importsTmplBytes, err := io.ReadAll(importsTmplFile)
+	if err != nil {
+		return err
+	}
+	importsTmplContent, err := executeTmpl(string(importsTmplBytes), "imports.go.tmpl", config)
+	if err != nil {
+		return err
+	}
+
+	// Execute the endpoints template
+	endpointsTmplFile, err := embedTemplates.Open(ROUTER_PATH_ENDPOINTS)
+	if err != nil {
+		return err
+	}
+	defer endpointsTmplFile.Close()
+	endpointsTmplBytes, err := io.ReadAll(endpointsTmplFile)
+	if err != nil {
+		return err
+	}
+	endpointsTmplContent, err := executeTmpl(string(endpointsTmplBytes), "endpoints.go.tmpl", config)
+	if err != nil {
+		return err
+	}
+
+	// Insert the new imports and endpoints into the source code.
+	source = strings.Replace(source, `"github.com/gofiber/fiber/v2"`, `"github.com/gofiber/fiber/v2"`+"\n"+importsTmplContent, 1)
+	source = strings.Replace(source, `func SetRoutes(app *fiber.App) {`, `func SetRoutes(app *fiber.App) {`+"\n"+endpointsTmplContent, 1)
+
+	// Write the modified source code back to the file.
+	err = os.WriteFile(routerPath, []byte(source), os.ModePerm)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 

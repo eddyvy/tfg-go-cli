@@ -11,6 +11,11 @@ type ResourceParams struct {
 	Table         *TableDefinition
 }
 
+type UpdateRouterParams struct {
+	ProjectConfig *ProjectConfig
+	Tables        []*TableDefinition
+}
+
 type TableDefinition struct {
 	Name    string              `yaml:"name"`
 	Columns []*ColumnDefinition `yaml:"columns"`

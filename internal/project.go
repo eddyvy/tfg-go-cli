@@ -32,6 +32,12 @@ func CreateNewProject(cfg *GlobalConfig) error {
 		return err
 	}
 
+	err = UpdateRouter(cfg.DatabaseConfig.Tables, cfg)
+	if err != nil {
+		RemoveAll(cfg)
+		return err
+	}
+
 	return nil
 }
 

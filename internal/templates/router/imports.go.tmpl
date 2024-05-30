@@ -1,0 +1,2 @@
+  {{range $index, $element := .Tables}}
+  "{{$.ProjectConfig.Base}}{{$.ProjectConfig.Name}}/internal/{{$element.Name}}"{{end}}

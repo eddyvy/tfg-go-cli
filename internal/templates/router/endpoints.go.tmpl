@@ -1,0 +1,7 @@
+  {{range .Tables}}  
+  app.Get("/{{.Name}}s", {{.Name}}.HandleGetAll)
+	app.Get("/{{.Name}}s/{{.PrimaryKeysEndpoint}}", {{.Name}}.HandleGetOne)
+	app.Post("/{{.Name}}s", {{.Name}}.HandlePost)
+	app.Put("/{{.Name}}s/{{.PrimaryKeysEndpoint}}", {{.Name}}.HandlePut)
+	app.Delete("/{{.Name}}s/{{.PrimaryKeysEndpoint}}", {{.Name}}.HandleDelete)
+  {{end}}
