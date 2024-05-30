@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strings"
 	"unicode"
+
+	"github.com/gertd/go-pluralize"
 )
 
 type ResourceParams struct {
@@ -31,6 +33,26 @@ type ColumnDefinition struct {
 
 func (t *TableDefinition) InputName() string {
 	return t.Name + "Input"
+}
+
+func (t *TableDefinition) PluralName() string {
+	client := pluralize.NewClient()
+
+	if client.IsPlural(t.Name) {
+		return t.Name
+	} else {
+		return client.Plural(t.Name)
+	}
+}
+
+func (t *TableDefinition) SingularName() string {
+	client := pluralize.NewClient()
+
+	if client.IsSingular(t.Name) {
+		return t.Name
+	} else {
+		return client.Singular(t.Name)
+	}
 }
 
 func (t *TableDefinition) PrimaryKeys() []*ColumnDefinition {
@@ -111,7 +133,7 @@ func (t *TableDefinition) PrimaryKeysEndpoint() string {
 func (t *TableDefinition) ModelScanParams() string {
 	strArr := make([]string, 0)
 	for _, col := range t.Columns {
-		strArr = append(strArr, fmt.Sprintf("&%s.%s", t.Name, col.GoName()))
+		strArr = append(strArr, fmt.Sprintf("&%s.%s", t.SingularName(), col.GoName()))
 	}
 	return strings.Join(strArr, ", ")
 }

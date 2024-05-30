@@ -18,23 +18,23 @@ func findAll() ([]*Model, error) {
 	}
 	defer rows.Close()
 
-	{{.Table.Name}}s := make([]*Model, 0)
+	{{.Table.PluralName}} := make([]*Model, 0)
 	for rows.Next() {
-		{{.Table.Name}} := new(Model)
+		{{.Table.SingularName}} := new(Model)
 		err := rows.Scan({{.Table.ModelScanParams}})
 		if err != nil {
 			return nil, err
 		}
-		{{.Table.Name}}s = append({{.Table.Name}}s, {{.Table.Name}})
+		{{.Table.PluralName}} = append({{.Table.PluralName}}, {{.Table.SingularName}})
 	}
 
-	return {{.Table.Name}}s, nil
+	return {{.Table.PluralName}}, nil
 }
 
 func findOne({{.Table.PrimaryKeysFuncParams}}) (*Model, error) {
 	sqlStr := `SELECT * FROM {{.Table.Name}} {{.Table.PrimaryKeysWhereClause}}`
 
-	{{.Table.Name}} := new(Model)
+	{{.Table.SingularName}} := new(Model)
 	row := database.DB.QueryRow(sqlStr, {{.Table.PrimaryKeysByComma}})
 	err := row.Scan({{.Table.ModelScanParams}})
 
@@ -42,33 +42,33 @@ func findOne({{.Table.PrimaryKeysFuncParams}}) (*Model, error) {
 		return nil, err
 	}
 
-	return {{.Table.Name}}, nil
+	return {{.Table.SingularName}}, nil
 }
 
 func create({{.Table.InputName}} *CreateInput) (*Model, error) {
 	sqlStr := `INSERT INTO {{.Table.Name}} ({{.Table.CreateInputByComma}}) VALUES ({{.Table.CreateInputNumbersByComma}}) RETURNING {{.Table.ColumnsByComma}}`
 
-	{{.Table.Name}} := new(Model)
+	{{.Table.SingularName}} := new(Model)
 	row := database.DB.QueryRow(sqlStr, {{.Table.CreateInputParams}})
 	err := row.Scan({{.Table.ModelScanParams}})
 	if err != nil {
 		return nil, err
 	}
 
-	return {{.Table.Name}}, nil
+	return {{.Table.SingularName}}, nil
 }
 
 func update({{.Table.PrimaryKeysFuncParams}}, {{.Table.InputName}} *UpdateInput) (*Model, error) {
 	sqlStr := `UPDATE {{.Table.Name}} {{.Table.UpdateSetClause}} {{.Table.PrimaryKeysWhereClause}}`
 
-	{{.Table.Name}} := new(Model)
+	{{.Table.SingularName}} := new(Model)
 	row := database.DB.QueryRow(sqlStr, {{.Table.UpdateInputParams}}, {{.Table.PrimaryKeysByComma}})
 	err := row.Scan({{.Table.ModelScanParams}})
 	if err != nil {
 		return nil, err
 	}
 
-	return {{.Table.Name}}, nil
+	return {{.Table.SingularName}}, nil
 }
 
 func delete({{.Table.PrimaryKeysFuncParams}}) error {

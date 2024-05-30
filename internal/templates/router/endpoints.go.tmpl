@@ -1,7 +1,7 @@
   {{range .Tables}}  
-  app.Get("/{{.Name}}s", {{.Name}}.HandleGetAll)
-	app.Get("/{{.Name}}s/{{.PrimaryKeysEndpoint}}", {{.Name}}.HandleGetOne)
-	app.Post("/{{.Name}}s", {{.Name}}.HandlePost)
-	app.Put("/{{.Name}}s/{{.PrimaryKeysEndpoint}}", {{.Name}}.HandlePut)
-	app.Delete("/{{.Name}}s/{{.PrimaryKeysEndpoint}}", {{.Name}}.HandleDelete)
+  app.Get("/{{.PluralName}}", {{.Name}}.HandleGetAll)
+	app.Get("/{{.PluralName}}/{{.PrimaryKeysEndpoint}}", {{.Name}}.HandleGetOne)
+	app.Post("/{{.PluralName}}", {{.Name}}.HandlePost)
+	app.Put("/{{.PluralName}}/{{.PrimaryKeysEndpoint}}", {{.Name}}.HandlePut)
+	app.Delete("/{{.PluralName}}/{{.PrimaryKeysEndpoint}}", {{.Name}}.HandleDelete)
   {{end}}
