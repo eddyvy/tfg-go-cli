@@ -59,7 +59,7 @@ func create({{.Table.InputName}} *CreateInput) (*Model, error) {
 }
 
 func update({{.Table.PrimaryKeysFuncParams}}, {{.Table.InputName}} *UpdateInput) (*Model, error) {
-	sqlStr := `UPDATE {{.Table.Name}} {{.Table.UpdateSetClause}} {{.Table.PrimaryKeysWhereClause}}`
+	sqlStr := `{{.Table.UpdateClause}} RETURNING {{.Table.ColumnsByComma}}`
 
 	{{.Table.SingularName}} := new(Model)
 	row := database.DB.QueryRow(sqlStr, {{.Table.UpdateInputParams}}, {{.Table.PrimaryKeysByComma}})

@@ -1,12 +1,12 @@
 package {{.Table.Name}}
 
 import (
-	"database/sql"
 	"encoding/json"
 	"math/big"
 	"net"
 	"time"
 
+	"{{.ProjectConfig.Base}}{{.ProjectConfig.Name}}/internal/parser"
 	"github.com/google/uuid"
 )
 

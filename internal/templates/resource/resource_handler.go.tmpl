@@ -27,6 +27,7 @@ func HandleGetOne(c *fiber.Ctx) error { {{range .Table.PrimaryKeys}}
 	{{.Name}}Param := c.Params("{{.Name}}")
 	{{.Name}}, err := parser.{{.ParserFunc}}({{.Name}}Param)
 	if err != nil {
+		log.Println(err)
 		return c.Status(http.StatusBadRequest).JSON("Invalid {{.Name}}")
 	}
 	{{end}}
@@ -44,6 +45,7 @@ func HandlePost(c *fiber.Ctx) error {
 	{{.Table.InputName}} := new(CreateInput)
 
 	if err := c.BodyParser({{.Table.InputName}}); err != nil {
+		log.Println(err)
 		return c.Status(http.StatusBadRequest).JSON("Invalid input")
 	}
 
@@ -61,12 +63,14 @@ func HandlePut(c *fiber.Ctx) error { {{range .Table.PrimaryKeys}}
 	{{.Name}}Param := c.Params("{{.Name}}")
 	{{.Name}}, err := parser.{{.ParserFunc}}({{.Name}}Param)
 	if err != nil {
+		log.Println(err)
 		return c.Status(http.StatusBadRequest).JSON("Invalid {{.Name}}")
 	}
 	{{end}}
 	{{.Table.InputName}} := new(UpdateInput)
 
 	if err := c.BodyParser({{.Table.InputName}}); err != nil {
+		log.Println(err)
 		return c.Status(http.StatusBadRequest).JSON("Invalid input")
 	}
 
@@ -84,6 +88,7 @@ func HandleDelete(c *fiber.Ctx) error { {{range .Table.PrimaryKeys}}
 	{{.Name}}Param := c.Params("{{.Name}}")
 	{{.Name}}, err := parser.{{.ParserFunc}}({{.Name}}Param)
 	if err != nil {
+		log.Println(err)
 		return c.Status(http.StatusBadRequest).JSON("Invalid {{.Name}}")
 	}
 	{{end}}

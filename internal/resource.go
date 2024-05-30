@@ -178,16 +178,29 @@ func (t *TableDefinition) UpdateInputParams() string {
 	return strings.Join(strArr, ", ")
 }
 
-func (t *TableDefinition) UpdateSetClause() string {
+func (t *TableDefinition) UpdateClause() string {
+	str := "UPDATE " + t.Name + " SET "
+	nParams := 1
+
 	strArr := make([]string, 0)
-	for i, col := range t.UpdateInputColumns() {
-		if i == 0 {
-			strArr = append(strArr, fmt.Sprintf("SET %s = $%d", col.Name, i+1))
-		} else {
-			strArr = append(strArr, fmt.Sprintf("%s = $%d", col.Name, i+1))
-		}
+	for _, col := range t.UpdateInputColumns() {
+		strArr = append(strArr, fmt.Sprintf("%s = $%d", col.Name, nParams))
+		nParams++
 	}
-	return strings.Join(strArr, ", ")
+	str += strings.Join(strArr, ", ")
+
+	strArr = make([]string, 0)
+	for i, col := range t.PrimaryKeys() {
+		if i == 0 {
+			strArr = append(strArr, fmt.Sprintf(" WHERE %s = $%d", col.Name, nParams))
+		} else {
+			strArr = append(strArr, fmt.Sprintf("AND %s = $%d", col.Name, nParams))
+		}
+		nParams++
+	}
+	str += strings.Join(strArr, " ")
+
+	return str
 }
 
 func (c *ColumnDefinition) GoType() string {
