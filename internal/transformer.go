@@ -7,7 +7,7 @@ var postgresToGoTypes = map[string]string{
 	"boolean":                     "bool",
 	"real":                        "float32",
 	"double precision":            "float64",
-	"numeric":                     "*big.Rat", // Arbitrary-precision numeric types can be represented using big.Rat in Go
+	"numeric":                     "*big.Rat",
 	"money":                       "float64",
 	"character varying":           "string",
 	"text":                        "string",
@@ -16,23 +16,42 @@ var postgresToGoTypes = map[string]string{
 	"timestamp with time zone":    "time.Time",
 	"json":                        "json.RawMessage",
 	"jsonb":                       "json.RawMessage",
-	"uuid":                        "uuid.UUID", // You'll need to use a package like github.com/google/uuid for this
-	"bytea":                       "[]byte",    // Binary data can be represented as a byte slice in Go
-	"point":                       "string",    // There's no direct equivalent for geometric types in Go, so you might want to use string and parse them manually
+	"uuid":                        "uuid.UUID",
+	"bytea":                       "[]byte",
+	"point":                       "string",
 	"line":                        "string",
 	"lseg":                        "string",
 	"box":                         "string",
 	"path":                        "string",
 	"polygon":                     "string",
 	"circle":                      "string",
-	"cidr":                        "net.IPNet", // You can use the net package in Go to work with network addresses
+	"cidr":                        "net.IPNet",
 	"inet":                        "net.IP",
 	"macaddr":                     "net.HardwareAddr",
 	"macaddr8":                    "net.HardwareAddr",
-	"bit":                         "[]byte", // Bit strings can be represented as byte slices in Go
+	"bit":                         "[]byte",
 	"bit varying":                 "[]byte",
-	"array":                       "[]interface{}",     // Arrays can be represented as slices in Go, but you'll need to handle them separately because the type name includes the element type (e.g., integer[])
-	"hstore":                      "map[string]string", // Hstore can be represented as a map in Go, but you'll need a package like github.com/lib/pq to work with it
+	"array":                       "[]interface{}",
+	"hstore":                      "map[string]string",
+	"character":                   "string",
+	"time without time zone":      "time.Time",
+	"time with time zone":         "time.Time",
+	"interval":                    "time.Duration",
+	"tsvector":                    "string",
+	"tsquery":                     "string",
+	"oid":                         "uint32",
+	"xml":                         "string",
+	"char":                        "string",
+	"name":                        "string",
+	"bpchar":                      "string",
+	"void":                        "interface{}",
+	"int2vector":                  "[]int16",
+	"int4range":                   "pg.Range",
+	"int8range":                   "pg.Range",
+	"numrange":                    "pg.Range",
+	"tsrange":                     "pg.Range",
+	"tstzrange":                   "pg.Range",
+	"daterange":                   "pg.Range",
 }
 
 var postgresToNullableGoTypes = map[string]string{
@@ -68,6 +87,25 @@ var postgresToNullableGoTypes = map[string]string{
 	"bit varying":                 "[]byte",
 	"array":                       "[]interface{}",
 	"hstore":                      "map[string]string",
+	"character":                   "parser.NullString",
+	"time without time zone":      "parser.NullTime",
+	"time with time zone":         "parser.NullTime",
+	"interval":                    "time.Duration",
+	"tsvector":                    "parser.NullString",
+	"tsquery":                     "parser.NullString",
+	"oid":                         "parser.NullInt32",
+	"xml":                         "parser.NullString",
+	"char":                        "parser.NullString",
+	"name":                        "parser.NullString",
+	"bpchar":                      "parser.NullString",
+	"void":                        "interface{}",
+	"int2vector":                  "[]parser.NullInt32",
+	"int4range":                   "pg.Range",
+	"int8range":                   "pg.Range",
+	"numrange":                    "pg.Range",
+	"tsrange":                     "pg.Range",
+	"tstzrange":                   "pg.Range",
+	"daterange":                   "pg.Range",
 }
 
 var goTypesToParserFunc = map[string]string{
