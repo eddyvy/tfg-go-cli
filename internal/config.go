@@ -124,7 +124,7 @@ func ReadFlagsConfig(projectName string) (*GlobalConfig, error) {
 	fmt.Println("Port:", dbCfg.Port)
 
 	for dbCfg.SSL == "" {
-		prompt.Label = "Please enter ssl connection type (e.g. enable)"
+		prompt.Label = "Please enter ssl connection type (e.g. disable)"
 		dbCfg.SSL, err = prompt.Run()
 		if err != nil {
 			return nil, err
