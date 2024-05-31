@@ -62,6 +62,9 @@ func (t *TableDefinition) PrimaryKeys() []*ColumnDefinition {
 			columns = append(columns, col)
 		}
 	}
+	if len(columns) == 0 {
+		return t.Columns
+	}
 	return columns
 }
 
@@ -73,6 +76,9 @@ func (t *TableDefinition) CreateInputColumns() []*ColumnDefinition {
 		}
 		columns = append(columns, col)
 	}
+	if len(columns) == 0 {
+		return t.Columns
+	}
 	return columns
 }
 
@@ -82,6 +88,9 @@ func (t *TableDefinition) UpdateInputColumns() []*ColumnDefinition {
 		if !col.IsPrimaryKey {
 			columns = append(columns, col)
 		}
+	}
+	if len(columns) == 0 {
+		return t.Columns
 	}
 	return columns
 }
