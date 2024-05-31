@@ -52,6 +52,7 @@ var postgresToGoTypes = map[string]string{
 	"tsrange":                     "pg.Range",
 	"tstzrange":                   "pg.Range",
 	"daterange":                   "pg.Range",
+	"text[]":                      "[]string",
 }
 
 var postgresToNullableGoTypes = map[string]string{
@@ -106,6 +107,7 @@ var postgresToNullableGoTypes = map[string]string{
 	"tsrange":                     "pg.Range",
 	"tstzrange":                   "pg.Range",
 	"daterange":                   "pg.Range",
+	"text[]":                      "[]parser.NullString",
 }
 
 var goTypesToParserFunc = map[string]string{
@@ -126,4 +128,47 @@ var goTypesToParserFunc = map[string]string{
 	"net.HardwareAddr":  "StringToHardwareAddr",
 	"[]interface{}":     "StringToInterfaceSlice",
 	"map[string]string": "StringToStringMap",
+}
+
+func isGoKeyword(s string) bool {
+	keywords := map[string]bool{
+		"break":       true,
+		"default":     true,
+		"func":        true,
+		"interface":   true,
+		"select":      true,
+		"case":        true,
+		"defer":       true,
+		"go":          true,
+		"map":         true,
+		"struct":      true,
+		"chan":        true,
+		"else":        true,
+		"goto":        true,
+		"package":     true,
+		"switch":      true,
+		"const":       true,
+		"fallthrough": true,
+		"if":          true,
+		"range":       true,
+		"type":        true,
+		"continue":    true,
+		"for":         true,
+		"import":      true,
+		"return":      true,
+		"var":         true,
+	}
+
+	_, exists := keywords[s]
+	return exists
+}
+
+func isOwnKeyword(s string) bool {
+	keywords := map[string]bool{
+		"database": true,
+		"parser":   true,
+	}
+
+	_, exists := keywords[s]
+	return exists
 }

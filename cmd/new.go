@@ -50,6 +50,12 @@ var newCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
+		err = internal.GoModDownloadProject(conf)
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+
 		fmt.Println("Project created successfully!")
 		fmt.Println("Run \"cd " + conf.ProjectConfig.ProjectDir + "\" to navigate to the project folder.")
 		fmt.Println("Run \"go run .\" to start your new server! 🚀")

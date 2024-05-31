@@ -229,6 +229,7 @@ func readTableData(db *sql.DB, table string, schema string) (*TableDefinition, e
 		column.Type = colType
 		column.Nullable = nullable == "YES"
 		column.HasDefault = defaultVal.Valid
+		column.TableName = table
 		tableDef.Columns = append(tableDef.Columns, &column)
 	}
 

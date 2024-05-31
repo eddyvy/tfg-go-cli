@@ -44,6 +44,17 @@ func TidyProject(cfg *GlobalConfig) error {
 	return nil
 }
 
+func GoModDownloadProject(cfg *GlobalConfig) error {
+	cmd := exec.Command("go", "mod", "download")
+	cmd.Dir = cfg.ProjectConfig.ProjectDir
+	err := cmd.Run()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return nil
+}
+
 func formatFile(path string) error {
 	src, err := os.ReadFile(path)
 	if err != nil {

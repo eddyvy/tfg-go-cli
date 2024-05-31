@@ -35,7 +35,7 @@ func findOne({{.Table.PrimaryKeysFuncParams}}) (*Model, error) {
 	sqlStr := `SELECT * FROM {{.Table.Name}} {{.Table.PrimaryKeysWhereClause}}`
 
 	{{.Table.SingularName}} := new(Model)
-	row := database.DB.QueryRow(sqlStr, {{.Table.PrimaryKeysByComma}})
+	row := database.DB.QueryRow(sqlStr, {{.Table.PrimaryKeysByCommaVars}})
 	err := row.Scan({{.Table.ModelScanParams}})
 
 	if err != nil {
@@ -62,7 +62,7 @@ func update({{.Table.PrimaryKeysFuncParams}}, {{.Table.InputName}} *UpdateInput)
 	sqlStr := `{{.Table.UpdateClause}} RETURNING {{.Table.ColumnsByComma}}`
 
 	{{.Table.SingularName}} := new(Model)
-	row := database.DB.QueryRow(sqlStr, {{.Table.UpdateInputParams}}, {{.Table.PrimaryKeysByComma}})
+	row := database.DB.QueryRow(sqlStr, {{.Table.UpdateInputParams}}, {{.Table.PrimaryKeysByCommaVars}})
 	err := row.Scan({{.Table.ModelScanParams}})
 	if err != nil {
 		return nil, err
@@ -74,7 +74,7 @@ func update({{.Table.PrimaryKeysFuncParams}}, {{.Table.InputName}} *UpdateInput)
 func delete({{.Table.PrimaryKeysFuncParams}}) error {
 	sqlStr := `DELETE FROM {{.Table.Name}} {{.Table.PrimaryKeysWhereClause}}`
 
-	_, err := database.DB.Exec(sqlStr, {{.Table.PrimaryKeysByComma}})
+	_, err := database.DB.Exec(sqlStr, {{.Table.PrimaryKeysByCommaVars}})
 	if err != nil {
 		return err
 	}

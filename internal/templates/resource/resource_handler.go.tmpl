@@ -23,15 +23,16 @@ func HandleGetAll(c *fiber.Ctx) error {
 	return c.JSON(&{{.Table.PluralName}})
 }
 
-func HandleGetOne(c *fiber.Ctx) error { {{range .Table.PrimaryKeys}}
+func HandleGetOne(c *fiber.Ctx) error {
+	var err error {{range .Table.PrimaryKeys}}
 	{{.Name}}Param := c.Params("{{.Name}}")
-	{{.Name}}, err := parser.{{.ParserFunc}}({{.Name}}Param)
+	{{if .ParserFunc}}{{.VarName}}, err := parser.{{.ParserFunc}}({{.Name}}Param)
 	if err != nil {
 		log.Println(err)
 		return c.Status(http.StatusBadRequest).JSON("Invalid {{.Name}}")
-	}
+	}{{else}}{{.VarName}} := {{.Name}}Param{{end}}
 	{{end}}
-	{{.Table.SingularName}}, err := findOne({{.Table.PrimaryKeysByComma}})
+	{{.Table.SingularName}}, err := findOne({{.Table.PrimaryKeysByCommaVars}})
 
 	if err != nil {
 		log.Println(err)
@@ -42,9 +43,11 @@ func HandleGetOne(c *fiber.Ctx) error { {{range .Table.PrimaryKeys}}
 }
 
 func HandlePost(c *fiber.Ctx) error {
+	var err error
+
 	{{.Table.InputName}} := new(CreateInput)
 
-	if err := c.BodyParser({{.Table.InputName}}); err != nil {
+	if err = c.BodyParser({{.Table.InputName}}); err != nil {
 		log.Println(err)
 		return c.Status(http.StatusBadRequest).JSON("Invalid input")
 	}
@@ -59,22 +62,23 @@ func HandlePost(c *fiber.Ctx) error {
 	return c.Status(http.StatusCreated).JSON(&{{.Table.SingularName}})
 }
 
-func HandlePut(c *fiber.Ctx) error { {{range .Table.PrimaryKeys}}
+func HandlePut(c *fiber.Ctx) error {
+	var err error {{range .Table.PrimaryKeys}}
 	{{.Name}}Param := c.Params("{{.Name}}")
-	{{.Name}}, err := parser.{{.ParserFunc}}({{.Name}}Param)
+	{{if .ParserFunc}}{{.VarName}}, err := parser.{{.ParserFunc}}({{.Name}}Param)
 	if err != nil {
 		log.Println(err)
 		return c.Status(http.StatusBadRequest).JSON("Invalid {{.Name}}")
-	}
+	}{{else}}{{.VarName}} := {{.Name}}Param{{end}}
 	{{end}}
 	{{.Table.InputName}} := new(UpdateInput)
 
-	if err := c.BodyParser({{.Table.InputName}}); err != nil {
+	if err = c.BodyParser({{.Table.InputName}}); err != nil {
 		log.Println(err)
 		return c.Status(http.StatusBadRequest).JSON("Invalid input")
 	}
 
-	{{.Table.SingularName}}, err := update({{.Table.PrimaryKeysByComma}}, {{.Table.InputName}})
+	{{.Table.SingularName}}, err := update({{.Table.PrimaryKeysByCommaVars}}, {{.Table.InputName}})
 
 	if err != nil {
 		log.Println(err)
@@ -84,15 +88,16 @@ func HandlePut(c *fiber.Ctx) error { {{range .Table.PrimaryKeys}}
 	return c.JSON(&{{.Table.SingularName}})
 }
 
-func HandleDelete(c *fiber.Ctx) error { {{range .Table.PrimaryKeys}}
+func HandleDelete(c *fiber.Ctx) error {
+	var err error {{range .Table.PrimaryKeys}}
 	{{.Name}}Param := c.Params("{{.Name}}")
-	{{.Name}}, err := parser.{{.ParserFunc}}({{.Name}}Param)
+	{{if .ParserFunc}}{{.VarName}}, err := parser.{{.ParserFunc}}({{.Name}}Param)
 	if err != nil {
 		log.Println(err)
 		return c.Status(http.StatusBadRequest).JSON("Invalid {{.Name}}")
-	}
+	}{{else}}{{.VarName}} := {{.Name}}Param{{end}}
 	{{end}}
-	err = delete({{.Table.PrimaryKeysByComma}})
+	err = delete({{.Table.PrimaryKeysByCommaVars}})
 
 	if err != nil {
 		log.Println(err)

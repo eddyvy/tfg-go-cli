@@ -29,6 +29,7 @@ type ColumnDefinition struct {
 	Nullable     bool   `yaml:"nullable"`
 	IsPrimaryKey bool   `yaml:"is_primary_key"`
 	HasDefault   bool   `yaml:"has_default"`
+	TableName    string `yaml:"-"`
 }
 
 func (t *TableDefinition) InputName() string {
@@ -39,9 +40,9 @@ func (t *TableDefinition) PluralName() string {
 	client := pluralize.NewClient()
 
 	if client.IsPlural(t.Name) {
-		return t.Name
+		return getVarName(t.Name)
 	} else {
-		return client.Plural(t.Name)
+		return getVarName(client.Plural(t.Name))
 	}
 }
 
@@ -49,9 +50,9 @@ func (t *TableDefinition) SingularName() string {
 	client := pluralize.NewClient()
 
 	if client.IsSingular(t.Name) {
-		return t.Name
+		return getVarName(t.Name)
 	} else {
-		return client.Singular(t.Name)
+		return getVarName(client.Singular(t.Name))
 	}
 }
 
@@ -111,10 +112,23 @@ func (t *TableDefinition) PrimaryKeysByComma() string {
 	return strings.Join(strArr, ", ")
 }
 
+func (t *TableDefinition) PrimaryKeysByCommaVars() string {
+	strArr := make([]string, 0)
+	for _, col := range t.PrimaryKeys() {
+		strArr = append(strArr, col.VarName())
+	}
+	return strings.Join(strArr, ", ")
+}
+
 func (t *TableDefinition) PrimaryKeysFuncParams() string {
 	strArr := make([]string, 0)
 	for _, col := range t.PrimaryKeys() {
-		strArr = append(strArr, fmt.Sprintf("%s %s", col.Name, col.GoType()))
+		gotype := postgresToGoTypes[col.Type]
+		if gotype == "" {
+			gotype = "interface{}"
+		}
+
+		strArr = append(strArr, fmt.Sprintf("%s %s", col.VarName(), gotype))
 	}
 	return strings.Join(strArr, ", ")
 }
@@ -213,10 +227,17 @@ func (t *TableDefinition) UpdateClause() string {
 }
 
 func (c *ColumnDefinition) GoType() string {
+	goType := ""
 	if c.Nullable {
-		return postgresToNullableGoTypes[c.Type]
+		goType = postgresToNullableGoTypes[c.Type]
+	} else {
+		goType = postgresToGoTypes[c.Type]
 	}
-	return postgresToGoTypes[c.Type]
+
+	if goType == "" {
+		return "interface{}"
+	}
+	return goType
 }
 
 func (c *ColumnDefinition) ParserFunc() string {
@@ -230,4 +251,21 @@ func (c *ColumnDefinition) GoName() string {
 	runes := []rune(c.Name)
 	runes[0] = unicode.ToUpper(runes[0])
 	return string(runes)
+}
+
+func (c *ColumnDefinition) VarName() string {
+	if c.TableName == c.Name {
+		return getVarName(c.Name + "Col")
+	}
+	return getVarName(c.Name)
+}
+
+func getVarName(s string) string {
+	if isGoKeyword(s) {
+		return s + "Var"
+	}
+	if isOwnKeyword(s) {
+		return s + "Var"
+	}
+	return s
 }
