@@ -77,8 +77,6 @@ func initNewFlags(cmd *cobra.Command) {
 	cmd.PersistentFlags().StringP("db_pass", "", "", "database password")
 	cmd.PersistentFlags().StringP("db_ssl", "", "", "ssl mode enabled")
 	viper.SetDefault("db_type", "postgresql")
-	viper.SetDefault("db_schema", "public")
-	viper.SetDefault("db_ssl", "disable")
 	viper.BindPFlag("db_type", cmd.PersistentFlags().Lookup("db_type"))
 	viper.BindPFlag("db_host", cmd.PersistentFlags().Lookup("db_host"))
 	viper.BindPFlag("db_port", cmd.PersistentFlags().Lookup("db_port"))
