@@ -39,6 +39,10 @@ func (t *TableDefinition) InputName() string {
 func (t *TableDefinition) PluralName() string {
 	client := pluralize.NewClient()
 
+	if client.Plural(t.Name) == client.Singular(t.Name) {
+		return getVarName(t.Name + "s")
+	}
+
 	if client.IsPlural(t.Name) {
 		return getVarName(t.Name)
 	} else {
@@ -48,6 +52,10 @@ func (t *TableDefinition) PluralName() string {
 
 func (t *TableDefinition) SingularName() string {
 	client := pluralize.NewClient()
+
+	if client.Plural(t.Name) == client.Singular(t.Name) {
+		return getVarName(t.Name)
+	}
 
 	if client.IsSingular(t.Name) {
 		return getVarName(t.Name)
