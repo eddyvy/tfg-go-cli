@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"os"
+	"sort"
 	"strings"
 
 	_ "github.com/lib/pq"
@@ -24,9 +25,10 @@ func ConfigureDatabase(cfg *GlobalConfig) error {
 		return err
 	}
 
+	os.Stdout.Sync()
 	fmt.Println("Reading table details...")
 	for _, tableName := range tableNames {
-		tableDef, err := readTableData(db, tableName)
+		tableDef, err := readTableData(db, tableName, cfg.DatabaseConfig.Schema)
 		if err != nil {
 			return err
 		}
@@ -59,7 +61,7 @@ func ConfigureDatabaseForUpdate(cfg *GlobalConfig) error {
 
 	fmt.Println("Reading table details...")
 	for _, tableName := range tableNames {
-		tableDef, err := readTableData(db, tableName)
+		tableDef, err := readTableData(db, tableName, cfg.DatabaseConfig.Schema)
 		if err != nil {
 			return err
 		}
@@ -113,6 +115,8 @@ func chooseTables(db *sql.DB, schema string) ([]string, error) {
 		return nil, fmt.Errorf("no tables found in the database")
 	}
 
+	sort.Strings(tables)
+
 	prompt := promptui.Select{
 		Label:        "Select table",
 		Items:        append([]string{"All tables"}, tables...),
@@ -159,6 +163,8 @@ func chooseTablesFiltering(db *sql.DB, schema string, tablesDone []string) ([]st
 		}
 	}
 
+	sort.Strings(tables)
+
 	if tables == nil {
 		return nil, fmt.Errorf("no more tables to add found in the database")
 	}
@@ -180,26 +186,29 @@ func chooseTablesFiltering(db *sql.DB, schema string, tablesDone []string) ([]st
 	return []string{result}, nil
 }
 
-func readTableData(db *sql.DB, table string) (*TableDefinition, error) {
+func readTableData(db *sql.DB, table string, schema string) (*TableDefinition, error) {
 	var tableDef TableDefinition
 	rows, err := db.Query(`
 			SELECT 
-					c.column_name, 
-					c.data_type, 
-					c.is_nullable, 
-					c.column_default,
-					(
-							SELECT COUNT(*)
-							FROM information_schema.key_column_usage AS kcu
-							INNER JOIN information_schema.table_constraints AS tc
-							ON kcu.constraint_name = tc.constraint_name
-							WHERE kcu.table_name = c.table_name
-							AND kcu.column_name = c.column_name
-							AND tc.constraint_type = 'PRIMARY KEY'
-					) > 0 AS is_primary_key
+				c.column_name, 
+				c.data_type, 
+				c.is_nullable, 
+				c.column_default,
+				(
+					SELECT COUNT(*)
+					FROM pg_index, pg_class, pg_attribute, pg_namespace 
+					WHERE pg_class.oid = c.table_name::regclass
+						AND indrelid = pg_class.oid
+						AND nspname = $1
+						AND pg_class.relnamespace = pg_namespace.oid
+						AND pg_attribute.attrelid = pg_class.oid
+						AND pg_attribute.attnum = any(pg_index.indkey)
+						AND indisprimary
+						AND pg_attribute.attname = c.column_name
+				) > 0 AS is_primary_key
 			FROM information_schema.columns AS c
-			WHERE c.table_name = $1
-	`, table)
+			WHERE c.table_name = $2
+	`, schema, table)
 	if err != nil {
 		return nil, err
 	}
