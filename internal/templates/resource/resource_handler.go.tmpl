@@ -25,12 +25,12 @@ func HandleGetAll(c *fiber.Ctx) error {
 
 func HandleGetOne(c *fiber.Ctx) error {
 	var err error {{range .Table.PrimaryKeys}}
-	{{.Name}}Param := c.Params("{{.Name}}")
-	{{if .ParserFunc}}{{.VarName}}, err := parser.{{.ParserFunc}}({{.Name}}Param)
+	{{.NameNoSpaces}}Param := c.Params("{{.NameNoSpaces}}")
+	{{if .ParserFunc}}{{.VarName}}, err := parser.{{.ParserFunc}}({{.NameNoSpaces}}Param)
 	if err != nil {
 		log.Println(err)
-		return c.Status(http.StatusBadRequest).JSON("Invalid {{.Name}}")
-	}{{else}}{{.VarName}} := {{.Name}}Param{{end}}
+		return c.Status(http.StatusBadRequest).JSON("Invalid {{.NameNoSpaces}}")
+	}{{else}}{{.VarName}} := {{.NameNoSpaces}}Param{{end}}
 	{{end}}
 	{{.Table.SingularName}}, err := findOne({{.Table.PrimaryKeysByCommaVars}})
 
@@ -64,12 +64,12 @@ func HandlePost(c *fiber.Ctx) error {
 
 func HandlePut(c *fiber.Ctx) error {
 	var err error {{range .Table.PrimaryKeys}}
-	{{.Name}}Param := c.Params("{{.Name}}")
-	{{if .ParserFunc}}{{.VarName}}, err := parser.{{.ParserFunc}}({{.Name}}Param)
+	{{.NameNoSpaces}}Param := c.Params("{{.NameNoSpaces}}")
+	{{if .ParserFunc}}{{.VarName}}, err := parser.{{.ParserFunc}}({{.NameNoSpaces}}Param)
 	if err != nil {
 		log.Println(err)
-		return c.Status(http.StatusBadRequest).JSON("Invalid {{.Name}}")
-	}{{else}}{{.VarName}} := {{.Name}}Param{{end}}
+		return c.Status(http.StatusBadRequest).JSON("Invalid {{.NameNoSpaces}}")
+	}{{else}}{{.VarName}} := {{.NameNoSpaces}}Param{{end}}
 	{{end}}
 	{{.Table.InputName}} := new(UpdateInput)
 
@@ -90,12 +90,12 @@ func HandlePut(c *fiber.Ctx) error {
 
 func HandleDelete(c *fiber.Ctx) error {
 	var err error {{range .Table.PrimaryKeys}}
-	{{.Name}}Param := c.Params("{{.Name}}")
-	{{if .ParserFunc}}{{.VarName}}, err := parser.{{.ParserFunc}}({{.Name}}Param)
+	{{.NameNoSpaces}}Param := c.Params("{{.NameNoSpaces}}")
+	{{if .ParserFunc}}{{.VarName}}, err := parser.{{.ParserFunc}}({{.NameNoSpaces}}Param)
 	if err != nil {
 		log.Println(err)
-		return c.Status(http.StatusBadRequest).JSON("Invalid {{.Name}}")
-	}{{else}}{{.VarName}} := {{.Name}}Param{{end}}
+		return c.Status(http.StatusBadRequest).JSON("Invalid {{.NameNoSpaces}}")
+	}{{else}}{{.VarName}} := {{.NameNoSpaces}}Param{{end}}
 	{{end}}
 	err = delete({{.Table.PrimaryKeysByCommaVars}})
 

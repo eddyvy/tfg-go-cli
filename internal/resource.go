@@ -99,15 +99,7 @@ func (t *TableDefinition) UpdateInputColumns() []*ColumnDefinition {
 func (t *TableDefinition) ColumnsByComma() string {
 	strArr := make([]string, 0)
 	for _, col := range t.Columns {
-		strArr = append(strArr, col.Name)
-	}
-	return strings.Join(strArr, ", ")
-}
-
-func (t *TableDefinition) PrimaryKeysByComma() string {
-	strArr := make([]string, 0)
-	for _, col := range t.PrimaryKeys() {
-		strArr = append(strArr, col.Name)
+		strArr = append(strArr, col.NameNoSpacesForDb())
 	}
 	return strings.Join(strArr, ", ")
 }
@@ -137,9 +129,9 @@ func (t *TableDefinition) PrimaryKeysWhereClause() string {
 	strArr := make([]string, 0)
 	for i, col := range t.PrimaryKeys() {
 		if i == 0 {
-			strArr = append(strArr, fmt.Sprintf("WHERE %s = $%d", col.Name, i+1))
+			strArr = append(strArr, fmt.Sprintf("WHERE %s = $%d", col.NameNoSpacesForDb(), i+1))
 		} else {
-			strArr = append(strArr, fmt.Sprintf("AND %s = $%d", col.Name, i+1))
+			strArr = append(strArr, fmt.Sprintf("AND %s = $%d", col.NameNoSpacesForDb(), i+1))
 		}
 	}
 	return strings.Join(strArr, " ")
@@ -148,7 +140,7 @@ func (t *TableDefinition) PrimaryKeysWhereClause() string {
 func (t *TableDefinition) PrimaryKeysEndpoint() string {
 	strArr := make([]string, 0)
 	for _, col := range t.PrimaryKeys() {
-		strArr = append(strArr, ":"+col.Name)
+		strArr = append(strArr, ":"+col.NameNoSpaces())
 	}
 	return strings.Join(strArr, "/")
 }
@@ -164,7 +156,7 @@ func (t *TableDefinition) ModelScanParams() string {
 func (t *TableDefinition) CreateInputByComma() string {
 	strArr := make([]string, 0)
 	for _, col := range t.CreateInputColumns() {
-		strArr = append(strArr, col.Name)
+		strArr = append(strArr, col.NameNoSpacesForDb())
 	}
 	return strings.Join(strArr, ", ")
 }
@@ -188,7 +180,7 @@ func (t *TableDefinition) CreateInputParams() string {
 func (t *TableDefinition) UpdateInputByComma() string {
 	strArr := make([]string, 0)
 	for _, col := range t.UpdateInputColumns() {
-		strArr = append(strArr, col.Name)
+		strArr = append(strArr, col.NameNoSpacesForDb())
 	}
 	return strings.Join(strArr, ", ")
 }
@@ -207,7 +199,7 @@ func (t *TableDefinition) UpdateClause() string {
 
 	strArr := make([]string, 0)
 	for _, col := range t.UpdateInputColumns() {
-		strArr = append(strArr, fmt.Sprintf("%s = $%d", col.Name, nParams))
+		strArr = append(strArr, fmt.Sprintf("%s = $%d", col.NameNoSpacesForDb(), nParams))
 		nParams++
 	}
 	str += strings.Join(strArr, ", ")
@@ -248,9 +240,21 @@ func (c *ColumnDefinition) GoName() string {
 	if c.Name == "" {
 		return ""
 	}
-	runes := []rune(c.Name)
+	runes := []rune(c.NameNoSpaces())
 	runes[0] = unicode.ToUpper(runes[0])
 	return string(runes)
+}
+
+func (c *ColumnDefinition) NameNoSpaces() string {
+	return strings.Replace(c.Name, " ", "_", -1)
+}
+
+func (c *ColumnDefinition) NameNoSpacesForDb() string {
+	if strings.Contains(c.Name, " ") {
+		return fmt.Sprintf("\"%s\"", c.Name)
+	} else {
+		return c.Name
+	}
 }
 
 func (c *ColumnDefinition) VarName() string {
@@ -261,11 +265,12 @@ func (c *ColumnDefinition) VarName() string {
 }
 
 func getVarName(s string) string {
-	if isGoKeyword(s) {
-		return s + "Var"
+	name := strings.Replace(s, " ", "_", -1)
+	if isGoKeyword(name) {
+		return name + "Var"
 	}
-	if isOwnKeyword(s) {
-		return s + "Var"
+	if isOwnKeyword(name) {
+		return name + "Var"
 	}
-	return s
+	return name
 }
