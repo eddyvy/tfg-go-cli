@@ -13,10 +13,10 @@ os -> term : datos archivos
 
 alt proyecto identificado
   term -> user : nombre tabla ?
-  term -> user : nombre tabla
+  user -> term : nombre tabla
   term -> user : params conexion ?
   user -> term : params conexion
-  term -> db : intena conectar
+  term -> db : intenta conectar
 
   alt conecta
     db -> term : conectado
