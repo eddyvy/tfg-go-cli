@@ -11,8 +11,8 @@ import (
 	"github.com/spf13/viper"
 )
 
-const TFG_VERSION = "0.0.1"
-const TFG_FILENAME = "tfg.yml"
+const TFG_VERSION string = "0.0.1"
+const TFG_FILENAME string = "tfg.yml"
 
 type GlobalConfig struct {
 	ConfigFile     string          `yaml:"-"`

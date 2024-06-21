@@ -10,11 +10,15 @@ import (
 var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Print the installed version of tfg",
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("Version:", internal.TFG_VERSION)
-	},
+	Run:   runVersion(fmt.Println),
 }
 
 func init() {
 	rootCmd.AddCommand(versionCmd)
+}
+
+func runVersion(print func(a ...interface{}) (n int, err error)) func(cmd *cobra.Command, args []string) {
+	return func(cmd *cobra.Command, args []string) {
+		print("Version:", internal.TFG_VERSION)
+	}
 }
